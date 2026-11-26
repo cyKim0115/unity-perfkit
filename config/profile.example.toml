@@ -33,6 +33,16 @@ id = "find_object_of_type"
 pattern = "FindObjectOfType"
 note = "참조를 캐시한다"
 
+# (선택) L0 정적 점검(perfkit static). project는 PC마다 다르면 사용자 설정 [static] project로 덮는다.
+[static]
+project = "<Unity 프로젝트 폴더>"
+source_dirs = ["Assets/Scripts"]
+asset_dirs = ["Assets"]
+exclude = ["Assets/ThirdParty/**"]
+
+[static.import]
+texture_size_limit = 2048
+
 # (선택) CPU-15 이벤트 히치 대상
 [[events]]
 id = "ui_open"

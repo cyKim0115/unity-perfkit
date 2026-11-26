@@ -56,6 +56,9 @@ perfkit/
   manifest.py       checks.json 읽기·검증·해시·프로필 덮어쓰기, manifest 명령
   verdict.py        절대 기준·잡음 등급별 변화 판정, ABAB 판정기 인터페이스, verdict 명령
   schema/           run-meta·result·comparison·manifest JSON 스키마와 표준 라이브러리 검증기, schema 명령
+  static/           L0 정적 점검(static 명령): Unity YAML 파서, C# 소스 검사, 임포트 규칙, 설정 스냅숏
+  build/            L1 빌드 산출물 점검(build 명령): APK·AAB 구성, 16KB 정렬, 빌드 레이아웃, 셰이더 변형
+  diff/             L0·L1 결과 비교(diff 명령), 결과 파일 입출력
 manifest/
   checks.json       123항목 + 보조 지표 AUX-01~04
   CHANGES.md        기준값 변경 기록
@@ -82,10 +85,68 @@ python -m perfkit manifest collectors [--markdown]
 python -m perfkit schema list
 python -m perfkit schema validate <파일...> [--kind run-meta|result|comparison|manifest] [--manifest]
 python -m perfkit verdict judge --id BLD-01 --layer L1 --metric apk_mb --base 100 --cand 106
+python -m perfkit static | build | diff             L0·L1 점검과 비교(아래 절)
 python -m unittest discover -s tests -t .
 ```
 
 `manifest check` 출력: `checks=123 areas=9 FRM=5 CPU=15 SCR=9 GPU=25 MEM=18 AST=20 BLD=13 THM=7 STB=11 basic=73 deep=50 sha256=<64자> aux=4 version=1.0.0`
+
+## L0·L1 점검: static·build·diff
+
+기기 없이 도는 결정적 지표다. 같은 입력이면 같은 바이트의 결과가 나오고(키 정렬, 순서 고정), 기준 결과와 그대로 diff한다.
+
+```
+python -m perfkit static [--project <Unity 프로젝트>] [--out <source.json>]
+python -m perfkit build --apk <APK|AAB> [--log <빌드 로그>] [--layout <buildlayout.json>] [--stamp <이름>] [--out <l1.json>]
+python -m perfkit diff <기준.json> <후보.json> [--out <비교.json>] [--fail-on warn|fail]
+python -m perfkit diff <후보.json>                 기준 없이 절대 기준만(16KB 정렬, 목표 API 등)
+```
+
+- 결과는 `result` 스키마. `collected_at`은 입력의 시각(커밋 시각, APK 수정 시각)이고, 실행마다 바뀌는 값(실행 시각·걸린 시간·절대 경로)은 옆 파일 `<이름>.run.json`에 둔다.
+- 기본 저장 위치: 결과 폴더(`paths.results`)의 `static/<커밋날짜>-<커밋8>[-dirty]/source.json`, `builds/<stamp>/l1.json`.
+- 항목마다 `values`(판정에 쓰는 지표), `detail`(내역), 소스 위반은 `findings`(규칙·파일·줄·메서드·발췌·지문), 자산 위반은 `violations`(경로)를 둔다. 에디터가 있어야 아는 값은 지어내지 않고 `status: not_collected` + `reason: "에디터 필요: …"` 또는 `editor_needed` 목록으로 남긴다.
+- `diff`는 `verdict.judge_item`으로 항목을 판정하고, 지문·경로 집합으로 **새로 생긴 위반·없어진 위반**을 낸다. `changes`는 값이나 위반 집합이 바뀐 항목 수(다시 재면 0). 결과는 `comparison` 스키마(`method=diff`).
+- 크기 단위 MB는 10^6 바이트다.
+
+### static(L0)이 보는 것
+
+| 분류 | 항목 | 방법 |
+|---|---|---|
+| 스크립트 규칙 | SCR-01~08, GPU-18, CPU-14, FRM-05의 코드 부분 | C# 소스를 주석·문자열을 지우고(위치 유지) 정규식으로 검사. 에디터 폴더·에디터 전용 asmdef·꺼지는 전처리 구간(`#if UNITY_EDITOR` 등)·`[Conditional]` 메서드 안 로그는 뺀다. 메서드 범위를 따라 매 프레임 메서드(Update 등) 안이면 `hot`(Major) |
+| 임포트 설정 | AST-01~20 | 텍스처·모델·오디오 `.meta`(플랫폼 덮어쓰기 반영), 이미지·WAV·OGG 머리(크기·길이·채널), TMP 폰트 에셋, 머티리얼 |
+| 프로젝트 설정 | FRM-05, CPU-03·06·08·13, MEM-15, BLD-04·06~09·13, THM-04, SCR-09 | ProjectSettings·QualitySettings·DynamicsManager·PresetManager |
+| URP | GPU-06·12·17·19·20·21·23 | 쓰이는 URP 에셋·렌더러·렌더러 기능·볼륨 프로필 스냅숏 |
+
+규칙 패키지 없는 Project Auditor 대신 perfkit이 직접 검사하므로 Auditor 결과와 수가 다를 수 있다(`detail.method = perfkit-source-scan`). 호출 그래프는 따라가지 않는다(Update가 부르는 함수 안은 hot이 아님).
+
+에디터가 필요한 것: CPU-10·THM-06(UI 컴포넌트 판정), GPU-05(SRP Batcher 호환), GPU-11·14, MEM-09의 L0(Analyze 규칙), AST-07(아틀라스 빈 공간), AST-13(메시 내용), 그리고 일부 지표(AST-06 단색, AST-10 정점 수, BLD-09 Script Debugging 등은 `editor_needed`).
+
+프로젝트 프로필(또는 사용자 설정이 덮음)의 `[static]`:
+
+```toml
+[static]
+project = "<Unity 프로젝트 폴더>"     # --project, PERFKIT_STATIC_PROJECT로도
+source_dirs = ["Assets/Scripts"]      # 스크립트 규칙(기본 Assets)
+asset_dirs = ["Assets/Content"]       # 임포트 규칙·볼륨 프로필(기본 Assets)
+exclude = ["Assets/ThirdParty/**"]
+[static.defines]                      # 전처리 기호(기본: UNITY_EDITOR 꺼짐, UNITY_ANDROID 켜짐, 나머지 모름=셈)
+DEVELOPMENT_BUILD = false
+[static.import]
+texture_size_limit = 2048
+streaming_min_size = 1024
+long_clip_seconds = 10.0
+short_clip_seconds = 2.0
+```
+
+### build(L1)가 보는 것
+
+| 입력 | 항목 |
+|---|---|
+| APK·AAB | BLD-01 크기(AAB면 base 모듈·다운로드 추정), BLD-02 구성·libil2cpp.so, BLD-03 PAD 팩(AAB만), BLD-05 16KB 정렬(`.so` PT_LOAD 정렬 ≥ 16KB, 64비트 ABI 필수 / STORED 항목 zip 오프셋 `.so` 16KB·그 밖 4바이트), BLD-07 libil2cpp.so |
+| 빌드 로그 | GPU-15 셰이더 변형(`Compiling shader` 블록의 After scriptable stripping 합. 고유 조합 합은 detail) |
+| buildlayout.json | MEM-09 중복 의존(건수·MB), MEM-11 텍스처, MEM-12 메시, MEM-14 애니메이션, MEM-17 폰트 아틀라스, BLD-02 번들·상위 자산 |
+
+GPU-13(Mali Offline Compiler)은 아직 연결하지 않았다.
 
 ## 매니페스트 항목
 
