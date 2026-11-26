@@ -59,6 +59,9 @@ perfkit/
   static/           L0 정적 점검(static 명령): Unity YAML 파서, C# 소스 검사, 임포트 규칙, 설정 스냅숏
   build/            L1 빌드 산출물 점검(build 명령): APK·AAB 구성, 16KB 정렬, 빌드 레이아웃, 셰이더 변형
   diff/             L0·L1 결과 비교(diff 명령), 결과 파일 입출력
+  compare/          기준 대비 비교·통계 판정(compare), 기준선(baseline), A/A 잡음 바닥(noise)
+  report/           비교·점검 결과 HTML(report), 기본 테마 default.css
+  index/            회차·비교 색인(index): runs.jsonl·comparisons.jsonl·runs.sqlite
 manifest/
   checks.json       123항목 + 보조 지표 AUX-01~04
   CHANGES.md        기준값 변경 기록
@@ -86,6 +89,7 @@ python -m perfkit schema list
 python -m perfkit schema validate <파일...> [--kind run-meta|result|comparison|manifest] [--manifest]
 python -m perfkit verdict judge --id BLD-01 --layer L1 --metric apk_mb --base 100 --cand 106
 python -m perfkit static | build | diff             L0·L1 점검과 비교(아래 절)
+python -m perfkit compare | baseline | noise | report | index   기준 대비 비교·판정·보고(아래 절)
 python -m unittest discover -s tests -t .
 ```
 
@@ -147,6 +151,71 @@ short_clip_seconds = 2.0
 | buildlayout.json | MEM-09 중복 의존(건수·MB), MEM-11 텍스처, MEM-12 메시, MEM-14 애니메이션, MEM-17 폰트 아틀라스, BLD-02 번들·상위 자산 |
 
 GPU-13(Mali Offline Compiler)은 아직 연결하지 않았다.
+
+## 비교·판정·보고: compare·baseline·noise·report·index
+
+기준 대비 「얼마나 나아졌나」를 층·등급마다 판정한다. 결정적 층(L0·L1)은 `diff` 그대로, 회차 묶음(L2·L3-E·L3-D)은 회차 단위 통계로 본다.
+
+```
+python -m perfkit compare --base <SPEC> --cand <SPEC> [--noise <기준선|noise.json>] [--report] [--fail-on warn|fail|worse]
+python -m perfkit compare --runs <SPEC> --split arm|alternate|half      한 묶음을 나눠 비교(ABAB의 A·B, A/A 점검)
+python -m perfkit baseline register --name <이름> --runs <SPEC> [--noise-runs <A/A SPEC>] [--l0 결과] [--l1 결과] [--force]
+python -m perfkit baseline list | show <이름>
+python -m perfkit noise aa --runs <A/A SPEC> [--target 5] [--out noise.json]
+python -m perfkit report <비교.json|결과.json> [--out 보고.html] [--css 테마.css]
+python -m perfkit index rebuild | check
+```
+
+- SPEC: `session:<이름>`(회차 메타 `session`), `baseline:<이름>`, `run:<id,…>`, 회차 폴더나 그 부모 폴더, L0·L1 결과 파일. `--base`·`--cand`는 여러 번 줄 수 있고, 결과 파일과 회차 묶음을 함께 주면 층마다 하나씩 `perfkit/comparison-set@1`로 묶는다(각 부분은 comparison 스키마).
+- 회차 폴더: `<결과 폴더>/runs/<run_id>/meta.json`(run-meta) + `result.json`(result, 같은 run_id). 나머지 원자료 파일은 색인의 artifact로만 잡힌다.
+- 비교 결과 기본 저장: `<결과 폴더>/comparisons/<시각>-<기준>-vs-<후보>.json`(`--report`면 옆에 .html).
+- 종료 코드: 0 정상 · 1 `--fail-on`에 걸림 · 2 거부(등급 혼용, 입력 오류) · 3 비교 무효(해시 다름). 커밋·APK를 받아 빌드·실행하는 `--base-commit`·`--base-apk`는 자리만 있다.
+
+판정(지표 하나)
+
+| 단계 | 내용 |
+|---|---|
+| 효과 | Hodges-Lehmann 이동량(쌍이면 라운드 쌍 차이의 Walsh 평균 중앙값, 독립이면 median(b−a)), 기준 중앙값 대비 %. 중앙값 비율, Cliff's δ도 싣는다 |
+| 구간 | 회차 단위 부트스트랩 백분위 95% 구간(기본 1만 회, 씨 고정 → 같은 입력이면 같은 구간) |
+| 검정 | 쌍: Wilcoxon 부호순위, 독립: Mann-Whitney U(동점은 중간 순위, 작은 표본은 정확 분포) |
+| 같음 | 구간 전체가 동등 범위 ±eq 안(먼저 본다). 0이 아닌 작은 이동이면 `minor_shift` |
+| 다름 | 구간이 0을 품지 않고, p < 0.05이고, \|효과\| > 잡음 바닥. 방향은 매니페스트 `better`로 개선·악화 |
+| 판단 보류 | 둘 다 아님, 회차 부족(기본 3회 미만), 또는 드리프트. 잡음 바닥이 있으면 필요한 라운드 수를 권고 |
+| 드리프트 | 쌍 5개 이상이면 라운드 번호와 쌍 차이의 Spearman(8개 이하 정확 순열). 유의하면 판단 보류 |
+
+- 잡음 바닥: `noise aa`나 기준선 `--noise-runs`로 같은 빌드 A/A 회차에서 잰 σd = √2·CV(%). 검출 가능한 최소 변화 MDE(n) = 2.8·σd/√n, 필요한 라운드 n = (2.8·σd/MDE)². 없으면 잡음 등급별 기본 바닥(none 0·low 1·medium 3·high 8%).
+- 동등 범위 기본: none 1·low 3·medium 5·high 10%. 쌍 5개 이하에서는 Wilcoxon p가 0.05 아래로 못 내려가 「다름」이 나오지 않는다(6쌍 이상 권장).
+- 통계 결과를 `verdict.judge_change`의 판정기로 넘겨 항목 판정(통과·개선·경고·실패·확인 필요)도 만든다(경고·실패 문턱은 판정 규칙 표). 매니페스트 잡음 등급이 `pending_aa`면 판정은 보류하고 수치만 참고로 싣는다.
+- 등급 규칙: 등급이 다른 회차를 섞으면 거부(종료 코드 2). 에뮬레이터(L3-E)는 절대 기준 없이 변화만 보고, 통계로 개선이면 「실기기 확인 대기」(`needs_device_confirm`). 관문에서 무효인 회차(`valid=false` 또는 프로필 문턱 초과)는 통계에서 빼고 수·이유를 남긴다(`--include-invalid`는 진단용). 측정 코드(`probe_hash`)·시나리오·매니페스트(`manifest_sha`)·품질 설정(`quality_hash`)이 다르면 비교를 무효로 표시한다. 두 묶음의 측정 시각이 겹치지 않으면(교차 아님) 경고하고 독립 비교로 본다.
+
+프로젝트 프로필 `[compare]`(모두 선택)
+
+```toml
+[compare]
+bootstrap = 10000
+seed = 1
+alpha = 0.05
+min_runs = 3
+[compare.equivalence_pct]          # 잡음 등급별 동등 범위
+low = 3.0
+[compare."L3-E"]
+exclude = ["FRM-01.p95", "STB-08"]  # 이 등급에서 판정하지 않을 항목·지표(값만 실음)
+[compare."L3-E".gate]              # 관문 문턱(회차 메타 값으로 다시 검사)
+host_busy_before_max = 15.0         # host.cpu_busy_before
+host_busy_during_max = 25.0         # host.cpu_busy_during
+other_unity_pct_max = 1.0           # host.other_unity_pct
+logcat_restarts_max = 0             # logcat_restarts
+[compare."L3-E".equivalence_pct]   # 항목·지표별 동등 범위
+"MEM-04" = 2.0
+[baseline]
+dir = "baselines"                   # 기준선 위치(기본 <결과 폴더>/baselines)
+[report]
+css = "theme.css"                   # 보고 테마(기본 perfkit/report/default.css)
+```
+
+- 기준선(`perfkit/baseline@1`): 등급마다 회차 목록·유효 수·무효 회차·측정 코드·품질 설정 해시·환경·지표 요약·잡음 바닥, L0·L1 결과 참조. 같은 이름에 다른 등급을 더할 수 있다.
+- 보고 HTML: 외부 자원 없음, 표 + 인라인 SVG(변화와 95% 구간, 회차 값 분포), 라이트·다크(`prefers-color-scheme`, `data-theme`). 한 절에는 한 층·한 등급만 둔다. 테마 CSS가 정의할 변수는 `default.css` 머리 주석에 있다.
+- 색인: `runs.jsonl`(회차 한 줄, 수치 지표 평탄화), `comparisons.jsonl`(비교 한 줄), `runs.sqlite`(run·metric·comparison·artifact·baseline). `index check`는 회차 폴더 수 = jsonl 줄 수 = sqlite run 수인지 본다.
 
 ## 매니페스트 항목
 
