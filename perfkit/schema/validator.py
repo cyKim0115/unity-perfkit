@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import re
+from functools import lru_cache
 from dataclasses import dataclass
 
 _ANNOTATIONS = {"title", "description", "$schema", "$id", "$comment", "examples", "default", "$defs"}
@@ -55,6 +56,36 @@ def _type_ok(value, t: str) -> bool:
     if t == "number":
         return isinstance(value, (int, float)) and not isinstance(value, bool)
     raise SchemaDefinitionError(f"모르는 type: {t}")
+
+
+@lru_cache(maxsize=None)
+def _compile_ecma(pattern: str) -> re.Pattern:
+    """JSON Schema(ECMA-262) 뜻대로 컴파일한다.
+
+    파이썬 `$`는 끝의 줄바꿈 앞에서도 맞아 `^abc$`가 "abc\\n"을 통과시킨다. ECMA의 `$`(m 플래그 없음)는
+    문자열 끝에서만 맞으므로, 이스케이프되지 않은 `$`를 `\\Z`로 바꾼다. 문자 클래스 안의 `$`는 그대로 둔다.
+    """
+    out, i, in_class = [], 0, False
+    while i < len(pattern):
+        ch = pattern[i]
+        if ch == "\\" and i + 1 < len(pattern):
+            out.append(pattern[i:i + 2])
+            i += 2
+            continue
+        if in_class:
+            if ch == "]":
+                in_class = False
+        elif ch == "[":
+            in_class = True
+        elif ch == "$":
+            ch = r"\Z"
+        out.append(ch)
+        i += 1
+    return re.compile("".join(out))
+
+
+def _ecma_search(pattern: str, s: str) -> bool:
+    return _compile_ecma(pattern).search(s) is not None
 
 
 def _is_datetime(s: str) -> bool:
@@ -142,7 +173,7 @@ class Validator:
                 out.append(SchemaError(path, f"길이 {schema['minLength']} 미만"))
             if "maxLength" in schema and len(inst) > schema["maxLength"]:
                 out.append(SchemaError(path, f"길이 {schema['maxLength']} 초과"))
-            if "pattern" in schema and not re.search(schema["pattern"], inst):
+            if "pattern" in schema and not _ecma_search(schema["pattern"], inst):
                 out.append(SchemaError(path, f"형식 {schema['pattern']} 불일치: {inst!r}"))
             if schema.get("format") == "date-time" and not _is_datetime(inst):
                 out.append(SchemaError(path, f"ISO 8601 시각이 아님: {inst!r}"))
@@ -190,7 +221,7 @@ class Validator:
                     matched = True
                     self._validate(v, props[k], sub, out)
                 for pat, psch in pats.items():
-                    if re.search(pat, k):
+                    if _ecma_search(pat, k):
                         matched = True
                         self._validate(v, psch, sub, out)
                 if not matched and "additionalProperties" in schema:

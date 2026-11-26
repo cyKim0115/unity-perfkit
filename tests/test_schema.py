@@ -45,6 +45,20 @@ class ValidatorTest(unittest.TestCase):
         self.assertFalse(v.is_valid({"k": "y", "m": 1}))  # oneOf 둘 다 맞음
         self.assertFalse(v.is_valid({"k": "x", "n": -1}))
 
+    def test_pattern_dollar_is_end_of_string(self):
+        # 파이썬 `$`는 끝 줄바꿈 앞에서도 맞는다. JSON Schema(ECMA) 뜻대로 끝에서만 맞아야 한다.
+        v = Validator({"type": "string", "pattern": "^[0-9a-f]{4}$"})
+        self.assertTrue(v.is_valid("abcd"))
+        self.assertFalse(v.is_valid("abcd\n"))
+        self.assertFalse(v.is_valid("abcd\nzz"))
+        v = Validator({"type": "string", "pattern": "^a[$]b$"})  # 문자 클래스 안의 $는 글자 그대로
+        self.assertTrue(v.is_valid("a$b"))
+        v = Validator({"type": "object", "propertyNames": {"pattern": "^[A-Z]{3}-[0-9]{2}$"}})
+        self.assertFalse(v.is_valid({"FRM-01\n": 1}))
+        meta = load("run-meta.device.json")
+        meta["apk_sha"] = meta["apk_sha"] + "\n"
+        self.assertNotEqual(validate(meta), [])
+
     def test_unknown_keyword_rejected(self):
         with self.assertRaises(SchemaDefinitionError):
             Validator({"type": "object", "requird": ["a"]})
