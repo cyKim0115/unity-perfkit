@@ -1,0 +1,7199 @@
+{
+  "schema": "perfkit/manifest@1",
+  "manifest_version": "1.0.0",
+  "title": "Unity 모바일(Android URP) 성능 점검 항목",
+  "origin": {
+    "items": "공개 문서(Unity Manual·URP·Android Developers·Play 도움말·Arm·Qualcomm) 조사 기반 점검 항목표(2026-11-26)",
+    "criteria": "출처 번호는 sources 칸. 「제안」은 출처 없는 1판 제안값"
+  },
+  "areas": {
+    "FRM": {
+      "name": "프레임 예산·스레드",
+      "count": 5
+    },
+    "CPU": {
+      "name": "런타임 연산",
+      "count": 15
+    },
+    "SCR": {
+      "name": "스크립트 정적 점검",
+      "count": 9
+    },
+    "GPU": {
+      "name": "렌더링(URP)",
+      "count": 25
+    },
+    "MEM": {
+      "name": "메모리",
+      "count": 18
+    },
+    "AST": {
+      "name": "리소스 임포트 설정",
+      "count": 20
+    },
+    "BLD": {
+      "name": "빌드·시작",
+      "count": 13
+    },
+    "THM": {
+      "name": "기기 지속성·전력",
+      "count": 7
+    },
+    "STB": {
+      "name": "안정성·스토어 지표·로그",
+      "count": 11
+    }
+  },
+  "layers": {
+    "L0": "정적(에디터 정적 검사)",
+    "L1": "빌드 산출물",
+    "L2": "에디터 Play(추세용)",
+    "L3-E": "에뮬레이터 회차(기준 대비 변화만)",
+    "L3-D": "실기기 회차(절대 기준 + 변화)",
+    "console": "Play Console(출시 뒤)"
+  },
+  "device_classes": {
+    "device": "L3-D",
+    "emulator": "L3-E"
+  },
+  "emulator_forbidden_tags": [
+    "thermal",
+    "gpu_clock",
+    "gpu_usage",
+    "battery",
+    "power",
+    "gpu_time",
+    "gpu_counter"
+  ],
+  "noise_rules": {
+    "basis": "기본 판정 규칙(제안값, 1판)",
+    "none": {
+      "count_warn_delta": 1,
+      "amount_warn_pct": 2,
+      "amount_fail_pct": 5
+    },
+    "low": {
+      "warn_pct": 5,
+      "fail_pct": 10
+    },
+    "medium": {
+      "min_base_runs": 3,
+      "warn_pct": 5,
+      "fail_pct": 10,
+      "needs_outside_range": true
+    },
+    "high": {
+      "min_base_runs": 3,
+      "standalone": false,
+      "absolute_fail_needs_all_runs": true
+    }
+  },
+  "sources": {
+    "U1": "https://unity.com/blog/games/optimize-your-mobile-game-performance-tips-on-profiling-memory-and-code-architecture-from",
+    "U2": "https://unity.com/en/how-to/best-practices-for-profiling-game-performance",
+    "U3": "https://docs.unity.com/en-us/engine/6000.6/manual/analysis/profiler/counters-reference",
+    "U4": "https://docs.unity.com/en-us/engine/6000.6/manual/analysis/profiler/markers",
+    "U5": "https://docs.unity.com/en-us/engine/current/script-reference/unityengine/application/targetframerate",
+    "U6": "https://docs.unity3d.com/Manual/events-per-frame-optimization.html (빈 이벤트 감지 이력: https://docs.unity3d.com/Packages/com.unity.project-auditor@0.10/changelog/CHANGELOG.html)",
+    "U7": "https://unity.com/how-to/best-practices-performance-optimization-unity",
+    "U8": "https://docs.unity.com/en-us/engine/6000.6/manual/analysis/performance-memory/managed-memory/optimizing-code-managed-memory/reference-types",
+    "U9": "https://docs.unity.com/en-us/engine/current/manual/analysis/performance-memory/managed-memory/incremental-garbage-collection",
+    "U10": "https://docs.unity.com/en-us/engine/current/script-reference/unityengine/scripting/garbagecollector/incrementaltimeslicenanoseconds",
+    "U11": "https://docs.unity.com/en-us/engine/6000.6/manual/programming-environment/scripting-backends/intro",
+    "U12": "https://docs.unity.com/en-us/engine/6000.6/manual/physics-section/physics-overview/physics-optimization/cpu/frequency",
+    "U13": "https://docs.unity.com/en-us/engine/6000.6/manual/physics-section/physics-overview/physics-optimization/cpu/transform-sync",
+    "U14": "https://unity.com/blog/games/optimize-your-mobile-game-performance-get-expert-tips-on-physics-ui-and-audio-settings",
+    "U15": "https://docs.unity.com/en-us/engine/current/manual/animation-section/animation-mecanim/mecanim-peformanceand-optimization",
+    "U16": "https://docs.unity.com/en-us/engine/current/script-reference/unityeditor/meshdeformation/gpu",
+    "U17": "https://docs.unity.com/en-us/engine/current/script-reference/unityeditor/meshdeformation/gpubatched",
+    "U18": "https://unity.com/how-to/unity-ui-optimization-tips",
+    "U19": "https://support.unity.com/hc/en-us/articles/115000355466",
+    "U20": "https://docs.unity3d.com/Packages/com.unity.textmeshpro@3.2/manual/FontAssetsDynamicFonts.html",
+    "U21": "https://docs.unity.com/en-us/engine/6000.0/manual/analysis/graphics-performance-profiling/loading-texture-mesh-data-asynchronously/configure-asynchronous-upload-pipeline",
+    "U22": "https://docs.unity.com/en-us/engine/current/script-reference/unityengine/application/backgroundloadingpriority",
+    "U23": "https://docs.unity.com/en-us/engine/current/script-reference/unityengine/object/instantiateasync",
+    "U24": "https://docs.unity.com/en-us/engine/current/manual/analysis/project-auditor/introduction",
+    "U25": "https://docs.unity.com/en-us/engine/6000.6/manual/analysis/project-auditor/window/code-view-reference",
+    "U26": "https://docs.unity.com/en-us/engine/current/manual/packages-list/packages-all/pack-safe/com-unity-project-auditor-rules",
+    "U27": "https://raw.githubusercontent.com/Unity-Technologies/ProjectAuditor/master/Data/ApiDatabase.json",
+    "U28": "https://raw.githubusercontent.com/Unity-Technologies/ProjectAuditor/master/Data/ProjectSettings.json",
+    "U29": "https://docs.unity3d.com/Packages/com.unity.project-auditor@1.1/manual/assets-view-reference.html (+ GitHub Unity-Technologies/ProjectAuditor `Editor/Modules/*Analyzer.cs`)",
+    "U30": "https://docs.unity3d.com/Packages/com.unity.project-auditor@1.1/manual/custom-analyzers.html",
+    "U31": "https://unity.com/how-to/mobile-game-optimization-tips-part-2",
+    "U32": "https://docs.unity.com/en-us/engine/current/manual/render-pipelines/universal-render-pipeline/introduction/configure-for-better-performance",
+    "U33": "https://docs.unity.com/en-us/engine/current/manual/render-pipelines/universal-render-pipeline/urp-reference/universalrp-asset",
+    "U34": "https://docs.unity.com/en-us/engine/6000.3/manual/analysis/graphics-performance-profiling/in-urp/reduce-draw-calls-urp/reduce-rendering-work-on-cpu/gpu-resident-drawer",
+    "U35": "https://docs.unity.com/en-us/engine/current/manual/analysis/graphics-performance-profiling/in-urp/reduce-draw-calls-urp/reduce-rendering-work-on-cpu/gpu-resident-drawer-performance",
+    "U36": "https://docs.unity3d.com/Manual/urp/gpu-culling.html",
+    "U37": "https://docs.unity3d.com/6000.2/Documentation/Manual/lod/mesh-lod-introduction.html",
+    "U38": "https://docs.unity3d.com/Packages/com.unity.profiling.systemmetrics.mali@1.1/manual/metrics-guide.html",
+    "U39": "https://unity.com/blog/games/tackling-profiling-for-mobile-games-with-unity-and-arm",
+    "U40": "https://docs-alpha.unity3d.com/Manual/shader-keywords",
+    "U41": "https://docs.unity3d.com/Manual/shader-variant-stripping.html",
+    "U42": "https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/whats-new-17.html",
+    "U43": "https://discussions.unity.com/t/render-graph-updates-in-unity-6-3/1668122",
+    "U44": "https://docs.unity.com/en-us/engine/6000.5/manual/analysis/graphics-performance-profiling/in-urp/on-tile-rendering (On-Tile Post: https://docs.unity.com/en-us/engine/6000.5/manual/post-processing-and-full-screen-effects/urp/on-tile-post-processing)",
+    "U45": "https://docs.unity3d.com/Manual/urp/rendering-paths-comparison.html",
+    "U46": "https://docs.unity.com/en-us/engine/current/manual/lighting-overview/lighting/shadows-in-urp/post-processing-ssao/ssao-renderer-feature-reference",
+    "U47": "https://docs.unity.com/en-us/engine/current/manual/analysis/graphics-performance-profiling/profile-rendering/frame-timing-manager/manager",
+    "U48": "https://docs.unity.cn/6000.0/Documentation/Manual/DynamicResolution.html",
+    "U49": "https://docs.unity3d.com/Packages/com.unity.memoryprofiler@1.1/manual/memory-on-device.html",
+    "U50": "https://docs.unity3d.com/Packages/com.unity.memoryprofiler@1.1/manual/find-memory-leaks.html",
+    "U51": "https://unity.com/blog/technology/tales-from-the-optimization-trenches-saving-memory-with-addressables",
+    "U52": "https://docs.unity3d.com/Packages/com.unity.addressables@2.8/manual/memory-assetbundles.html",
+    "U53": "https://docs.unity.com/en-us/engine/current/manual/materials-and-shaders/shaders/shader-troubleshooting/shader-reducing/shader-memory",
+    "U54": "https://docs.unity.com/en-us/engine/6000.0/manual/materials-and-shaders/textures/texture-loading/texture-streaming/configure",
+    "U55": "https://docs.unity3d.com/Manual/texture-formats-reference.html",
+    "U56": "https://docs.unity3d.com/Manual/texture-choose-format-by-platform.html",
+    "U57": "https://unity.com/en/how-to/project-configuration-and-assets",
+    "U58": "https://docs.unity.com/en-us/engine/current/manual/assets-and-media/asset-types/models/importing/fbximporter-model",
+    "U59": "https://issuetracker.unity3d.com/issues/blend-shape-normals-are-incorrect-for-fbx-files-when-normals-are-set-to-import-and-blend-shape-normals-are-set-to-calculate",
+    "U60": "https://docs.unity.com/en-us/engine/current/manual/audio/reference/class-audio-clip",
+    "U61": "https://docs.unity3d.com/6000.2/Documentation/Manual/class-AnimationClip.html",
+    "U62": "https://docs.unity3d.com/6000.4/Documentation/Manual/FBXImporter-Rig.html",
+    "U63": "https://docs.unity.com/en-us/engine/6000.3/manual/programming-environment/scripting-backends/il2cpp/il2cpp-introduction.md",
+    "U64": "https://docs.unity.com/en-us/engine/6000.0/manual/platform-specific/android/getting-started/class-player-settings",
+    "U65": "https://docs.unity.com/en-us/engine/6000.6/manual/building-and-publishing/managed-code-variants",
+    "U66": "https://docs.unity.com/en-us/engine/current/manual/platform-specific/android/developing/optimization/optimize-application-startup",
+    "U67": "https://docs.unity.com/en-us/engine/current/manual/materials-and-shaders/shaders/shader-troubleshooting/shader-reduce-stalling/shader-prevent-stutter/shader-prewarm-other",
+    "U68": "https://docs.unity.com/en-us/engine/6000.0/manual/materials-and-shaders/shaders/shader-troubleshooting/shader-reduce-stalling/shader-prevent-stutter/shader-pso-trace-warming/shader-pso-trace",
+    "U69": "https://docs.unity3d.com/Manual/vulkan-hardware-profiles-intro.html",
+    "U70": "https://docs.unity.com/en-us/engine/current/script-reference/unityengine/rendering/ondemandrendering",
+    "U71": "https://docs.unity.com/en-us/engine/6000.6/manual/analysis/runtime-performance-scaling/adaptive-performance/get-started/supported-features",
+    "U72": "https://docs.unity3d.com/Packages/com.unity.adaptiveperformance.google.android@5.1/manual/requirements.html",
+    "U73": "https://docs.unity3d.com/Packages/com.unity.addressables.android@1.0/manual/play-asset-delivery-schema-reference.html",
+    "U74": "https://docs.unity3d.com/Packages/com.unity.addressables.android@1.0/manual/texture-compression-targeting.html",
+    "U75": "https://docs.unity3d.com/Packages/com.unity.mobile.android-logcat@1.1/manual/index.html",
+    "U76": "https://github.com/Cysharp/UniTask",
+    "U77": "https://github.com/annulusgames/LitMotion (Bind: https://annulusgames.github.io/LitMotion/articles/en/binding.html)",
+    "U78": "https://github.com/KyryloKuzyk/PrimeTween",
+    "G1": "https://developer.android.com/topic/performance/vitals",
+    "G1b": "https://developer.android.com/google/play/vitals",
+    "G2": "https://developer.android.com/games/optimize/vitals/slow-session",
+    "G3": "https://developer.android.com/google/play/vitals/render",
+    "G4": "https://developer.android.com/google/play/vitals/launch-time (측정: https://developer.android.com/topic/performance/vitals/launch-time)",
+    "G5": "https://support.google.com/googleplay/android-developer/answer/9844486",
+    "G6": "https://developer.android.com/topic/performance/vitals/anr",
+    "G7": "https://developer.android.com/games/optimize/vitals/lmk",
+    "G8": "https://developer.android.com/google/play/vitals/memory-usage",
+    "G9": "https://developer.android.com/games/optimize/memory-overview",
+    "G10": "https://developer.android.com/games/optimize/memory-monitoring",
+    "G11": "https://developer.android.com/games/engines/unity/unity-reduce-memory",
+    "G12": "https://developer.android.com/games/engines/unity/unity-lmks",
+    "G13": "https://source.android.com/docs/core/perf/memory-limiter",
+    "G14": "https://developer.android.com/tools/dumpsys",
+    "G15": "https://support.google.com/googleplay/android-developer/answer/9859372",
+    "G16": "https://developer.android.com/guide/playcore/asset-delivery",
+    "G17": "https://developer.android.com/guide/playcore/asset-delivery/texture-compression",
+    "G18": "https://developer.android.com/16kb-page-size",
+    "G19": "https://developer.android.com/games/engines/unity/unity-on-android",
+    "G20": "https://support.google.com/googleplay/android-developer/answer/11926878",
+    "G21": "https://developer.android.com/games/optimize/power",
+    "G22": "https://developer.android.com/games/sdk/frame-pacing",
+    "G23": "https://developer.android.com/games/engines/unity/unity-vkquality",
+    "G24": "https://developer.android.com/games/sdk/performance-tuner/unity",
+    "G25": "https://developer.android.com/games/optimize/adpf/thermal",
+    "G26": "https://developer.android.com/games/engines/unity/unity-adpf",
+    "G27": "https://developer.android.com/studio/profile/power-profiler",
+    "G28": "https://developer.android.com/google/play/vitals/excessive-wakelock",
+    "G29": "https://android-developers.googleblog.com/2026/03/battery-technical-quality-enforcement.html",
+    "G30": "https://developer.android.com/agi/sys-trace/counters",
+    "G31": "https://perfetto.dev/docs/data-sources/gpu",
+    "G32": "https://developer.android.com/develop/xr/unity/performance/gpu-rendering",
+    "G33": "https://source.android.com/docs/core/debug/native-crash",
+    "G34": "https://chromium.googlesource.com/android_tools/+/HEAD/sdk/sources/android-25/android/view/Choreographer.java",
+    "A1": "Arm Mali GPU Best Practices Rev 3.4 (2025-01) https://developer.arm.com/documentation/101897",
+    "A2": "https://developer.arm.com/community/arm-community-blogs/b/mobile-graphics-and-gaming-blog/posts/optimizing-3d-scenes-in-godot-on-arm-gpus-part-2",
+    "A3": "https://developer.arm.com/community/arm-community-blogs/b/mobile-graphics-and-gaming-blog/posts/save-battery-modern-graphics-mobile-adpf",
+    "A4": "https://developer.arm.com/community/arm-community-blogs/b/mobile-graphics-and-gaming-blog/posts/astc-does-it---part-ii-how-to-use-it",
+    "Q1": "https://docs.qualcomm.com/bundle/publicresource/80-78185-2/topics/mobile_best_practices.md"
+  },
+  "checks": [
+    {
+      "id": "FRM-01",
+      "area": "FRM",
+      "title": "CPU 메인 스레드 프레임 시간 p50·p95·p99 (ms)",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "p50"
+        },
+        {
+          "key": "p95"
+        },
+        {
+          "key": "p99"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.frame_timing",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "high",
+          "judge": "absolute+change",
+          "collector": "device.frame_timing",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "60fps 16.67ms, 모바일은 약 65%=약 11ms 사용 권장 [U1][U2]. 릴리스에서 Frame Timing Stats 켜면 ProfilerRecorder로 읽힘 [U3]",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "U1",
+          "U2",
+          "U3"
+        ],
+        "absolute": [
+          {
+            "metric": "p95",
+            "op": "gt",
+            "warn": 11,
+            "fail": 14,
+            "note": "11ms는 가용 시간 65% 권장[U1][U2], 경고 11~14·실패 14 초과는 제안",
+            "basis": "제안",
+            "sources": [
+              "U1",
+              "U2"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "높음(발열·클럭)",
+        "fix": "스크립트·애니메이션·UI 리빌드 → 하위 CPU-* 항목으로 분해"
+      }
+    },
+    {
+      "id": "FRM-02",
+      "area": "FRM",
+      "title": "렌더 스레드 시간 (ms)",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "p50"
+        },
+        {
+          "key": "p95"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.frame_timing",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "high",
+          "judge": "absolute+change",
+          "collector": "device.frame_timing",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. 메인과 같은 11ms 이내 제안",
+        "basis": [
+          "제안"
+        ],
+        "sources": [],
+        "absolute": [
+          {
+            "metric": "p95",
+            "op": "gt",
+            "warn": 11,
+            "note": "메인과 같은 11ms 이내 제안",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "높음",
+        "fix": "드로콜·SetPass 과다 → GPU-03~06"
+      }
+    },
+    {
+      "id": "FRM-03",
+      "area": "FRM",
+      "title": "FPS와 느린 프레임 비율 (% 프레임 > 16.7ms, > 33ms, > 50ms), 히치 수",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "fps_avg",
+          "unit": "fps",
+          "better": "higher",
+          "kind": "time"
+        },
+        {
+          "key": "slow_16_7_pct",
+          "unit": "%"
+        },
+        {
+          "key": "slow_33_pct",
+          "unit": "%"
+        },
+        {
+          "key": "slow_50_pct",
+          "unit": "%"
+        },
+        {
+          "key": "hitch_count",
+          "unit": "count",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.frame_timing",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.frame_timing",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "Unity: 예산을 넘는 프레임 하나도 히치 [U2]. Play 느린 프레임=50ms(20fps)·34ms(30fps), 느린 세션=느린 프레임 25% 초과, 실행 1분 뒤부터 [G2]. 60fps용 16.7ms 초과 비율은 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "제안",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "G2",
+          "U2"
+        ],
+        "absolute": [
+          {
+            "metric": "fps_avg",
+            "op": "lt",
+            "warn": 59,
+            "fail": 58,
+            "note": "평균 FPS ≥ 59(60 제한), 실패 < 58",
+            "basis": "제안",
+            "sources": []
+          },
+          {
+            "metric": "slow_16_7_pct",
+            "op": "gt",
+            "warn": 0.5,
+            "fail": 1,
+            "note": "16.7ms 초과 프레임 0.5% 경고·1% 실패",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "GC·로딩·셰이더 첫 사용·발열 → CPU-03·CPU-15·BLD-12·THM"
+      }
+    },
+    {
+      "id": "FRM-04",
+      "area": "FRM",
+      "title": "병목 판별 마커 비중: `Gfx.WaitForPresentOnGfxThread`(GPU 병목), `Gfx.WaitForCommands`(메인 병목), `WaitForTargetFPS`(여유)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "none",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "record",
+          "collector": "editor.device_profile",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "partial",
+      "criteria": {
+        "text": "판별용, 기준 없음 [U4]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U4"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(개발 빌드)",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "— (분류 용도)"
+      }
+    },
+    {
+      "id": "FRM-05",
+      "area": "FRM",
+      "title": "프레임 설정: `targetFrameRate`·`vSyncCount`·Optimized Frame Pacing",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "metrics": [
+        {
+          "key": "target_fps",
+          "unit": "fps",
+          "kind": "snapshot"
+        },
+        {
+          "key": "vsync_count",
+          "kind": "snapshot"
+        },
+        {
+          "key": "optimized_frame_pacing",
+          "kind": "bool"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "Android에서 -1·vSync 0이면 30fps 고정, 주사율 약수로 내림 → 60 명시 필요 [U5]. Frame Pacing 꺼짐은 Auditor PAS0030 [U28]. Swappy는 목표에 가까운 주사율을 골라 배터리 절약 [G22]. 켜면 목표가 약수로 내려가는 이슈 보고 있음",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G22",
+          "U5",
+          "U28"
+        ],
+        "absolute": [
+          {
+            "metric": "target_fps",
+            "op": "ne",
+            "warn": 60,
+            "note": "Android에서 60 명시 필요[U5]",
+            "basis": "공식",
+            "sources": [
+              "U5"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "설정 누락 → 60 명시, Frame Pacing 켬 후 A/B"
+      }
+    },
+    {
+      "id": "CPU-01",
+      "area": "CPU",
+      "title": "`BehaviourUpdate`·`LateBehaviourUpdate` 시간 (ms), 활성 Update 콜백 수",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "behaviour_ms"
+        },
+        {
+          "key": "update_callbacks",
+          "unit": "count",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.play_profile"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "editor.device_profile",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "빈 메서드 삭제 안전, 구조 변경 확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. 네이티브→매니지드 호출 비용이 수천 개부터 커짐 [U6][U7]. 예산 배분은 프로젝트가 정함(제안: 메인 11ms 중 스크립트 4ms)",
+        "basis": [
+          "공식",
+          "제안",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "U6",
+          "U7"
+        ],
+        "absolute": [
+          {
+            "metric": "behaviour_ms",
+            "op": "gt",
+            "warn": 4,
+            "note": "메인 11ms 중 스크립트 4ms 제안",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "빈 Update, 매 프레임 판단 → 빈 메서드 삭제, Update 매니저, n프레임 분할 [U6]"
+      }
+    },
+    {
+      "id": "CPU-02",
+      "area": "CPU",
+      "title": "GC 할당 (B/frame, 횟수/frame) — 고정 시나리오별",
+      "unit": "B/frame",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "idle_b_per_frame",
+          "zero_is_hard": true,
+          "note": "평상시 기본 화면. 기준 0에서 0이 아니면 실패"
+        },
+        {
+          "key": "idle_allocs_per_frame",
+          "unit": "count/frame"
+        },
+        {
+          "key": "event_b_per_frame"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_counters"
+        },
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.gc_alloc",
+          "build_config": "development",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "device.gc_alloc",
+          "build_config": "development"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음(\"Minimize\") [U4]. 릴리스 빌드에서는 카운터 없음 [U3]. 제안: 평상시 기본 화면 0B/frame, 팝업 열기 등 이벤트는 기준선 대비",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "U3",
+          "U4"
+        ],
+        "absolute": [
+          {
+            "metric": "idle_b_per_frame",
+            "op": "gt",
+            "fail": 0,
+            "note": "평상시 0B/frame 제안",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기(개발 빌드)",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "문자열 연결, 클로저 캡처, 박싱, params, 배열 반환 API, `new WaitForSeconds` [U8] → StringBuilder·`SetText`, NonAlloc API, 캐시, `UnityEngine.Pool`"
+      }
+    },
+    {
+      "id": "CPU-03",
+      "area": "CPU",
+      "title": "GC 수집 스파이크 (`GC.Collect` ms, 횟수/분), 증분 GC 설정",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "gc_collect_ms_max"
+        },
+        {
+          "key": "gc_count_per_min",
+          "unit": "회/분",
+          "kind": "ratio"
+        },
+        {
+          "key": "incremental_gc",
+          "unit": "",
+          "better": "none",
+          "kind": "bool"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "static.project_settings"
+        },
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.unity_memory",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.unity_memory",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "설정 확인 안전",
+      "auto": "auto",
+      "criteria": {
+        "text": "증분 GC 기본, 기본 time slice 3ms, 비증분 정지는 수백 ms 가능 [U9][U10]. 증분 끔은 PAS0034 [U28]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U9",
+          "U10",
+          "U28"
+        ],
+        "absolute": [
+          {
+            "metric": "incremental_gc",
+            "op": "ne",
+            "warn": true,
+            "note": "증분 GC 끔은 PAS0034[U28]",
+            "basis": "공식",
+            "sources": [
+              "U28"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·정적",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "할당 누적, 참조 변경 많음 → CPU-02 해결"
+      }
+    },
+    {
+      "id": "CPU-04",
+      "area": "CPU",
+      "title": "관리 힙 크기 GC Reserved / Used (MB) 추이",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "gc_reserved_mb"
+        },
+        {
+          "key": "gc_used_mb"
+        },
+        {
+          "key": "gc_reserved_monotonic",
+          "unit": "",
+          "better": "lower",
+          "kind": "bool"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.unity_memory",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "device.unity_memory",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. 힙은 늘면 줄지 않음 [G11]. 10분 세션 동안 단조 증가면 경고(제안)",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "G11"
+        ],
+        "absolute": [
+          {
+            "metric": "gc_reserved_monotonic",
+            "op": "eq",
+            "warn": true,
+            "note": "10분 동안 단조 증가면 경고(제안)",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(릴리스 가능)",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "큰 일시 할당·누수 → MEM-07"
+      }
+    },
+    {
+      "id": "CPU-05",
+      "area": "CPU",
+      "title": "물리 시간 `FixedBehaviourUpdate`·`Physics.Processing`·`Simulate` (ms), 프레임당 스텝 수",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.device_profile",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "Fixed Timestep 기본 0.02(50Hz), 긴 프레임에서 다중 스텝(spiral of doom) [U12]. `maximumDeltaTime` 기본 1/3초. 물리 카운터는 릴리스 Unavailable [U3]. 목표 timestep은 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "U3",
+          "U12"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(개발 빌드)",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "메시 콜라이더, 불필요 리지드바디 → 단순 콜라이더, `MovePosition` [U14]"
+      }
+    },
+    {
+      "id": "CPU-06",
+      "area": "CPU",
+      "title": "물리 설정: Auto Sync Transforms, Reuse Collision Callbacks, Layer Collision Matrix, Prebake Collision Meshes",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "metrics": [
+        {
+          "key": "auto_sync_transforms",
+          "kind": "bool"
+        },
+        {
+          "key": "reuse_collision_callbacks",
+          "kind": "bool"
+        },
+        {
+          "key": "prebake_collision_meshes",
+          "kind": "bool"
+        },
+        {
+          "key": "layer_collision_matrix",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "설정 안전, Matrix 확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "Auto Sync 끔 권장(PAS0012) [U13][U28], Reuse 켬(PAS0028), Matrix 단순화(PAS0013/0015), Prebake 켬(PAS0007)",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U13",
+          "U28"
+        ],
+        "absolute": [
+          {
+            "metric": "auto_sync_transforms",
+            "op": "eq",
+            "warn": true,
+            "note": "끔 권장(PAS0012)",
+            "basis": "공식",
+            "sources": [
+              "U13",
+              "U28"
+            ]
+          },
+          {
+            "metric": "reuse_collision_callbacks",
+            "op": "eq",
+            "warn": false,
+            "note": "켬 권장(PAS0028)",
+            "basis": "공식",
+            "sources": [
+              "U28"
+            ]
+          },
+          {
+            "metric": "prebake_collision_meshes",
+            "op": "eq",
+            "warn": false,
+            "note": "켬 권장(PAS0007)",
+            "basis": "공식",
+            "sources": [
+              "U28"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "기본값 방치 → 설정 정리"
+      }
+    },
+    {
+      "id": "CPU-07",
+      "area": "CPU",
+      "title": "Animator 비용: `PreLateUpdate.DirectorUpdateAnimationBegin/End`, `Animators.WriteTransforms` (ms), 활성 Animator 수",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "animator_ms"
+        },
+        {
+          "key": "active_animators",
+          "unit": "count",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.play_profile"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.device_profile",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람(화면 밖 캐릭터 상태 진행이 멈출 수 있음)",
+      "auto": "partial",
+      "criteria": {
+        "text": "공식 수치 없음 [U4]. 정적 점검: Culling Mode, Update When Offscreen 꺼짐, 스케일 커브, 가중치 0 레이어 [U15]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U4",
+          "U15"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "화면 밖 캐릭터도 Always Animate, 스케일 커브 → Cull Update Transforms/Completely, 커브 정리"
+      }
+    },
+    {
+      "id": "CPU-08",
+      "area": "CPU",
+      "title": "스키닝·블렌드셰이프: Visible Skinned Meshes Count, 메시 변형 모드(CPU/GPU/GPUBatched), 활성 블렌드셰이프 수",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "visible_skinned_meshes"
+        },
+        {
+          "key": "active_blendshapes"
+        },
+        {
+          "key": "deformation_mode",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "device.render_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "GPU 모드는 메시·블렌드셰이프마다 dispatch, OpenGL 불가 [U16]. GPUBatched는 배칭 가능 메시 3개 이상일 때 이득, 고사양 권장 [U17]. 대상 기기에서의 우열은 실측 필요",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U16",
+          "U17"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·정적",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "표정 블렌드셰이프 상시 활성, 본 과다 → 쓰지 않는 셰이프 끄기·베이크"
+      }
+    },
+    {
+      "id": "CPU-09",
+      "area": "CPU",
+      "title": "UI 리빌드 `Canvas.SendWillRenderCanvases`·`Canvas.BuildBatch` (ms, 매 프레임 발생 여부)",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "build_batch_ms"
+        },
+        {
+          "key": "send_will_render_ms"
+        },
+        {
+          "key": "rebuild_every_frame",
+          "unit": "",
+          "better": "lower",
+          "kind": "bool"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_counters"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.device_profile",
+          "build_config": "development"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. BuildBatch가 매 프레임이면 움직이는 UI가 캔버스를 dirty로 만든다는 뜻 [U19][U18]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U18",
+          "U19"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "큰 캔버스 안 애니메이션 UI, UI Animator → 캔버스 분리, 트윈으로 교체"
+      }
+    },
+    {
+      "id": "CPU-10",
+      "area": "CPU",
+      "title": "UI 정적 점검: 비상호작용 Graphic의 Raycast Target, UI 오브젝트의 Animator, 중첩 LayoutGroup, 숨길 때 GameObject 끄기",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.ui_scan"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "Raycast 확인, 나머지 사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "권장 패턴 [U18]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U18"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ Raycast Target 끔, GraphicRaycaster 제거, Canvas 컴포넌트로 숨김"
+      }
+    },
+    {
+      "id": "CPU-11",
+      "area": "CPU",
+      "title": "TMP 비용: 매 프레임 텍스트 갱신 수, 동적 아틀라스 글리프 추가 히치",
+      "unit": "count/frame",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "text_updates_per_frame"
+        },
+        {
+          "key": "glyph_add_hitches",
+          "unit": "count"
+        }
+      ],
+      "layers": [
+        "L2"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_profile"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "partial",
+      "criteria": {
+        "text": "동적 폰트는 정적보다 비쌈, 글리프는 쓸 때 추가 [U20]. 기준 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "U20"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "매 프레임 `text =` 문자열 → 값 바뀔 때만 `SetText`"
+      }
+    },
+    {
+      "id": "CPU-12",
+      "area": "CPU",
+      "title": "트윈·UniTask·코루틴 할당 (B/호출)",
+      "unit": "B/call",
+      "kind": "amount",
+      "better": "lower",
+      "layers": [
+        "L2"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_profile"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "UniTask·LitMotion·PrimeTween 모두 무할당 표방, 단 UniTask는 개발 빌드에서 상태 기계 할당이 생겨 거짓 양성, PrimeTween은 `this` 캡처 람다가 할당 [U76][U77][U78]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U76",
+          "U77",
+          "U78"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play(개발 빌드)",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "캡처 람다 → state 넘기는 Bind·`target` 오버로드"
+      }
+    },
+    {
+      "id": "CPU-13",
+      "area": "CPU",
+      "title": "비동기 업로드: `AsyncUploadManager.AsyncBufferResized` 발생 수, Async Upload Time Slice·Buffer Size 설정",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "async_buffer_resized"
+        },
+        {
+          "key": "upload_settings",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.device_profile",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "발생 시 CPU 스파이크, 버퍼를 가장 큰 텍스처에 맞춤(범위 2~2047MB) [U4][U21]. 설정 규칙 PAS0020/0021",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U4",
+          "U21"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·정적",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "큰 텍스처 로드 → 버퍼 확대"
+      }
+    },
+    {
+      "id": "CPU-14",
+      "area": "CPU",
+      "title": "`Application.backgroundLoadingPriority` 정책",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        },
+        "L3-D": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "device.probe_state",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "메인 스레드 통합 상한 Low 2 / BelowNormal 4 / Normal 10 / High 50ms, 에디터에선 효과 없음 [U22]. 게임 중 낮게·로딩 화면 High(프로젝트 결정)",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "U22"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·기기",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "게임 중 High → 낮춤"
+      }
+    },
+    {
+      "id": "CPU-15",
+      "area": "CPU",
+      "title": "이벤트 히치: UI 열기·오브젝트 생성·씬 전환 같은 이벤트의 최대 프레임 시간 (ms), Addressables 로드 시간",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "ui_open_max_frame_ms"
+        },
+        {
+          "key": "spawn_max_frame_ms"
+        },
+        {
+          "key": "scene_switch_max_frame_ms"
+        },
+        {
+          "key": "addressables_load_ms"
+        },
+        {
+          "key": "events",
+          "better": "none",
+          "kind": "snapshot",
+          "note": "이벤트별 최대 프레임(이벤트 목록은 프로필 events)"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.play_events"
+        },
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.phase_markers",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": true,
+      "set_basis": "기본 세트·심화 변형",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음, 프로젝트가 정함(제안: UI 열기 최대 프레임 ≤ 33ms)",
+        "basis": [
+          "제안",
+          "프로젝트가 정함"
+        ],
+        "sources": [],
+        "absolute": [
+          {
+            "metric": "ui_open_max_frame_ms",
+            "op": "gt",
+            "fail": 33,
+            "note": "UI 열기 최대 프레임 ≤ 33ms 제안",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "동기 Instantiate·AddComponent(PAC0224/0225), InstantiateAsync도 마지막 통합·Awake는 메인 [U23], 로드 완료 전 접근 → 풀링, 미리 로드"
+      }
+    },
+    {
+      "id": "SCR-01",
+      "area": "SCR",
+      "title": "Project Auditor 코드 이슈 수 (규칙 ID별·심각도별, Major 수)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "issues_total"
+        },
+        {
+          "key": "major",
+          "increase_is_fail": true,
+          "note": "기준선 대비 Major 증가 0(제안) → 새 Major는 실패"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_code"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "Unity 6.4부터 에디터 내장, 이전은 `com.unity.project-auditor` 패키지 [U24]. (Fixed/Late)Update·코루틴 경로에서 발견되면 Major로 올림 [U25]. 기준: 기준선 대비 Major 증가 0(제안)",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "U24",
+          "U25"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능(에디터 안에서, batchmode 금지)",
+        "noise": "없음",
+        "fix": "— 하위 SCR-02~08"
+      }
+    },
+    {
+      "id": "SCR-02",
+      "area": "SCR",
+      "title": "핫 패스 할당 API: LINQ(PAC1000), String.Concat(PAC1002), `.tag`(PAC0223/0229 → CompareTag), GetComponentsInChildren/InParent(PAC0026~0029), Physics.RaycastAll(PAC0008), Mesh.vertices(PAC0069)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_code"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "규칙 ID는 옛 저장소 ApiDatabase 기준 [U27]. 오버로드 구분 못 해 NonAlloc도 신고, 가상 호출 트리 미지원 [U25]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U25",
+          "U27"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ NonAlloc·캐시·CompareTag"
+      }
+    },
+    {
+      "id": "SCR-03",
+      "area": "SCR",
+      "title": "탐색 API: Camera.main(PAC0000), FindObjectOfType(PAC0234), FindObjectsOfType(PAC0129), Resources.FindObjectsOfTypeAll·LoadAll(PAC0004/0120)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_code"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "[U27]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U27"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 참조 캐시·주입"
+      }
+    },
+    {
+      "id": "SCR-04",
+      "area": "SCR",
+      "title": "리플렉션(PAC1001), SendMessage(PAC0056/0057), OnGUI(PAC0058)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_code"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "[U27]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U27"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 직접 호출·이벤트"
+      }
+    },
+    {
+      "id": "SCR-05",
+      "area": "SCR",
+      "title": "빌드에 남는 `Debug.Log` 호출 수 (특히 Update 경로)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "debug_log_calls"
+        },
+        {
+          "key": "debug_log_in_update"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.source_scan"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "`[Conditional]` 래퍼로 빌드 제외 권장 [U7]. Auditor 규칙 ID 미확인",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U7"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능(grep)",
+        "noise": "없음",
+        "fix": "→ 래퍼 교체"
+      }
+    },
+    {
+      "id": "SCR-06",
+      "area": "SCR",
+      "title": "빈 MonoBehaviour 이벤트(Update/LateUpdate/FixedUpdate) 수",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_code"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전",
+      "auto": "auto",
+      "criteria": {
+        "text": "Auditor 0.6.1부터 감지(ID 미확인) [U6]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U6"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 삭제"
+      }
+    },
+    {
+      "id": "SCR-07",
+      "area": "SCR",
+      "title": "`Renderer.material` 접근(PAC0039, 머티리얼 복제·배칭 깨짐)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_code"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "[U27][U31]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U27",
+          "U31"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ `sharedMaterial`·MaterialPropertyBlock(단 SRP Batcher와 충돌 [U31])"
+      }
+    },
+    {
+      "id": "SCR-08",
+      "area": "SCR",
+      "title": "프로젝트 코드 규칙 위반 수 (규칙 목록은 프로젝트 프로필 code_rules)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "violations"
+        },
+        {
+          "key": "by_rule",
+          "better": "none",
+          "kind": "snapshot",
+          "note": "규칙 id별 위반 수(규칙은 프로필 code_rules)"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.source_scan"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "프로젝트가 정함(프로필 code_rules)",
+        "basis": [
+          "프로젝트가 정함"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능(grep·Roslyn)",
+        "noise": "없음",
+        "fix": "→ 룰대로 교체"
+      }
+    },
+    {
+      "id": "SCR-09",
+      "area": "SCR",
+      "title": "Project Auditor 설정 규칙(PAS*) 위반 수: 0012·0014·0016·0017·0020·0021·0028·0030·0034·1004(IL2CPP Master/Debug)·1008(SRP Batcher)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "value",
+          "increase_is_fail": true,
+          "note": "새 실패 규칙은 실패"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.auditor_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "[U28]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U28"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 설정 정리"
+      }
+    },
+    {
+      "id": "GPU-01",
+      "area": "GPU",
+      "title": "GPU 프레임 시간 (ms)",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "p50"
+        },
+        {
+          "key": "p95"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "high",
+          "judge": "change_only",
+          "collector": "device.frame_timing",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "FrameTimingManager, 4프레임 지연, 타일 GPU에서는 프레임 시간보다 크게 나올 수 있음, GLES에선 측정 자체가 성능 저하 [U47]. 60fps 제한 아래에선 클럭이 내려가 커 보일 수 있음. 단독 판정 금지",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U47"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "gpu_time"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "높음",
+        "fix": "— GPU-02와 함께"
+      }
+    },
+    {
+      "id": "GPU-02",
+      "area": "GPU",
+      "title": "GPU 클럭·사용률·클럭 상한 (MHz, %), 「사용률 × 클럭 ÷ 상한」",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "usage_vs_cap_p95",
+          "unit": "%"
+        },
+        {
+          "key": "clock_avg_mhz",
+          "unit": "MHz",
+          "better": "none"
+        },
+        {
+          "key": "cap_mhz",
+          "unit": "MHz",
+          "better": "none"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.gpu_freq",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. 제안: 상한 대비 사용량 p95 ≤ 65%(FRM-01과 같은 여유 원칙)",
+        "basis": [
+          "제안"
+        ],
+        "sources": [],
+        "absolute": [
+          {
+            "metric": "usage_vs_cap_p95",
+            "op": "gt",
+            "warn": 65,
+            "fail": 85,
+            "note": "상한 대비 사용량 p95 ≤ 65% 제안",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [
+        "gpu_clock",
+        "gpu_usage"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능(sysfs·Perfetto `power/gpu_frequency` [G31])",
+        "noise": "중간",
+        "fix": "— GPU-03~25로 분해"
+      }
+    },
+    {
+      "id": "GPU-03",
+      "area": "GPU",
+      "title": "Draw Calls (개/프레임) — 고정 구도",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "near"
+        },
+        {
+          "key": "far"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_counters"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "device.render_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "Unity 공식 예산 없음 [U31]. Arm 근사 가이드 GLES < 500, Vulkan < 1000 [A1]. 릴리스에서 ProfilerRecorder 가능 [U3]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1",
+          "U3",
+          "U31"
+        ],
+        "absolute": [
+          {
+            "metric": "near",
+            "op": "gt",
+            "warn": 1000,
+            "note": "Arm 근사 가이드 Vulkan < 1000(GLES < 500)",
+            "basis": "공식",
+            "sources": [
+              "A1"
+            ]
+          },
+          {
+            "metric": "far",
+            "op": "gt",
+            "warn": 1000,
+            "note": "Arm 근사 가이드 Vulkan < 1000(GLES < 500)",
+            "basis": "공식",
+            "sources": [
+              "A1"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "가능",
+        "noise": "낮음(고정 구도)",
+        "fix": "머티리얼 분열, 아웃라인 멀티패스 → SRP Batcher·인스턴싱·머티리얼 통합"
+      },
+      "note": "에뮬레이터 등급 목록 밖이라 L3-E에 넣지 않음. 기기에서 카운터가 읽히는지 먼저 확인"
+    },
+    {
+      "id": "GPU-04",
+      "area": "GPU",
+      "title": "SetPass Calls·Batches (개/프레임)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "setpass_near"
+        },
+        {
+          "key": "setpass_far"
+        },
+        {
+          "key": "batches_near"
+        },
+        {
+          "key": "batches_far"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_counters"
+        },
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.render_counters",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.render_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음, 기준선 대비",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "셰이더·키워드 분열 → 변형 통합"
+      }
+    },
+    {
+      "id": "GPU-05",
+      "area": "GPU",
+      "title": "SRP Batcher 비호환 셰이더 수, 프레임 디버거의 배치 끊김 사유",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "srp_batcher_incompatible"
+        },
+        {
+          "key": "batch_breaks",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.render_assets"
+        },
+        "L2": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "editor.frame_debugger"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "SRP Batcher 켬 권장 [U32]. URP에서 MaterialPropertyBlock 피함 [U31]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U31",
+          "U32"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·Play",
+        "auto": "부분",
+        "noise": "없음",
+        "fix": "CBUFFER 누락, MPB 사용 → 셰이더 수정"
+      }
+    },
+    {
+      "id": "GPU-06",
+      "area": "GPU",
+      "title": "인스턴싱·배칭 방식: GPU 인스턴싱(풀), Dynamic batching 대상, GPU Resident Drawer 사용 여부",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        },
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.frame_debugger"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "partial",
+      "criteria": {
+        "text": "Dynamic batching은 300정점·900속성 이하 [U31]. GRD는 Forward+·compute API(GLES 제외)·MeshRenderer만·BRG Keep All 필요 [U34], GPU 부하가 조금 늘고 저사양 모바일에서 더 큼 [U35] → 심화 A/B만",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U31",
+          "U34",
+          "U35"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·Play",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "GPU-07",
+      "area": "GPU",
+      "title": "정점·삼각형 수 (개/프레임) — 고정 구도·최대 줌아웃",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "verts_near"
+        },
+        {
+          "key": "verts_far"
+        },
+        {
+          "key": "tris_near"
+        },
+        {
+          "key": "tris_far"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_counters"
+        },
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.render_counters",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.render_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "범용 공식 수치 없음. Unity·Arm 사례 500k 정점/프레임(그 기기 30fps 기준)은 참고만 [U39]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U39"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "풀·캐릭터 고폴리 → LOD, Mesh LOD(6.2+, 스킨드는 LOD Group 권장) [U37]"
+      }
+    },
+    {
+      "id": "GPU-08",
+      "area": "GPU",
+      "title": "삼각형 밀도 (fragments/primitive), 마이크로 삼각형",
+      "unit": "fragments/primitive",
+      "kind": "ratio",
+      "better": "higher",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "device.gpu_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "Arm 프리미티브당 10~20 fragment 이상 [A1], Qualcomm 삼각형당 최소 4픽셀 [Q1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1",
+          "Q1"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "lt",
+            "warn": 10,
+            "note": "Arm 프리미티브당 10~20 fragment 이상",
+            "basis": "공식",
+            "sources": [
+              "A1"
+            ]
+          }
+        ]
+      },
+      "tags": [
+        "gpu_counter"
+      ],
+      "source_text": {
+        "location": "기기(Mali 카운터)",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "원경 고밀도 메시 → LOD·거리 감쇠"
+      }
+    },
+    {
+      "id": "GPU-09",
+      "area": "GPU",
+      "title": "오버드로 (fragments/pixel)",
+      "unit": "fragments/pixel",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.render_debug"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "device.gpu_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "임계 없음. Arm 예산식은 평균 2.5 가정, 불투명 fragment/pixel > 1이면 early-ZS로 없앨 수 있는 과다 [A1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "gpu_counter"
+      ],
+      "source_text": {
+        "location": "기기·Play(Rendering Debugger)",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "정렬 불량, 큰 투명 파티클 → 앞→뒤 정렬, 파티클 크기·수 축소"
+      }
+    },
+    {
+      "id": "GPU-10",
+      "area": "GPU",
+      "title": "alpha clip/discard 사용 머티리얼 수, Late Z 비율",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "alpha_clip_materials"
+        },
+        {
+          "key": "late_z_pct",
+          "unit": "%",
+          "kind": "ratio"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.render_assets"
+        },
+        "L3-D": {
+          "noise": "unknown",
+          "judge": "change_only",
+          "collector": "device.gpu_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람(외형)",
+      "auto": "partial",
+      "criteria": {
+        "text": "discard는 late-ZS 강제 → 최소화, 불투명 뒤에 그림 [A1][Q1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1",
+          "Q1"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "gpu_counter"
+      ],
+      "source_text": {
+        "location": "정적·기기",
+        "auto": "부분",
+        "noise": "없음(정적)",
+        "fix": "→ 메시로 실루엣, 렌더 큐 정리"
+      }
+    },
+    {
+      "id": "GPU-11",
+      "area": "GPU",
+      "title": "투명·파티클: 투명 드로콜 수, 화면 덮는 면적, 동시 파티클 수",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "transparent_draws"
+        },
+        {
+          "key": "max_particles"
+        },
+        {
+          "key": "screen_cover_pct",
+          "unit": "%",
+          "kind": "ratio"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.render_assets"
+        },
+        "L2": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.frame_debugger"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "블렌딩 자체는 타일 버퍼에서 싸지만 과다 그리기를 먼저 줄임 [A1]. 기준 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "A1"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·정적",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "큰 FX·겹침 → 크기·수·수명 축소"
+      }
+    },
+    {
+      "id": "GPU-12",
+      "area": "GPU",
+      "title": "렌더 해상도·Render Scale·동적 해상도",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. UI는 Render Scale을 따르지 않음 [U33]. 동적 해상도는 Android Vulkan만 [U48]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U33",
+          "U48"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 0.8~0.9 등 A/B(화질 결정)"
+      }
+    },
+    {
+      "id": "GPU-13",
+      "area": "GPU",
+      "title": "주요 셰이더 사이클(Mali Offline Compiler: 산술·로드스토어·텍스처 사이클, 최장 경로, 레지스터, stack spilling)",
+      "unit": "cycles",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "arith_cycles"
+        },
+        {
+          "key": "load_store_cycles"
+        },
+        {
+          "key": "texture_cycles"
+        },
+        {
+          "key": "longest_path"
+        },
+        {
+          "key": "registers"
+        },
+        {
+          "key": "stack_spill_bytes",
+          "unit": "B",
+          "kind": "amount"
+        }
+      ],
+      "layers": [
+        "L1"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "build.malioc"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "stack spilling은 항상 0바이트 [A2]. 나머지는 기준선 대비",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A2"
+        ],
+        "absolute": [
+          {
+            "metric": "stack_spill_bytes",
+            "op": "gt",
+            "fail": 0,
+            "note": "stack spilling은 항상 0바이트[A2]",
+            "basis": "공식",
+            "sources": [
+              "A2"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드(정적)",
+        "auto": "가능(CLI)",
+        "noise": "없음",
+        "fix": "무거운 노드·highp → 정밀도·노드 정리"
+      }
+    },
+    {
+      "id": "GPU-14",
+      "area": "GPU",
+      "title": "셰이더 정밀도(half/mediump) 사용",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "full_precision_shaders"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.render_assets"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "제안: 세트 미지정 → 심화",
+      "fix_risk": "human",
+      "fix_risk_text": "사람(아티팩트)",
+      "auto": "partial",
+      "criteria": {
+        "text": "Mali에서 16비트 2배 속도, varying·샘플러 mediump 권장 [A1]. Qualcomm mediump 2배 효율 [Q1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1",
+          "Q1"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "부분",
+        "noise": "없음",
+        "fix": "→ Shader Graph Precision half"
+      }
+    },
+    {
+      "id": "GPU-15",
+      "area": "GPU",
+      "title": "셰이더 변형 수(빌드 로그 「Compiling shader … variants」), 키워드 수",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "variants"
+        },
+        {
+          "key": "keywords"
+        }
+      ],
+      "layers": [
+        "L1"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.shader_variants"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인(핑크 위험)",
+      "auto": "auto",
+      "criteria": {
+        "text": "성능 기준 수치 없음, 한도만 있음 [U40]. 쓰지 않는 URP 기능 끄기·`shader_feature_local` [U41][U33]. GRD는 BRG 변형 Keep All로 늘림 [U34]. 기준선 대비",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U33",
+          "U34",
+          "U40",
+          "U41"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "multi_compile 남용 → 스트리핑(`IPreprocessShaders`)"
+      }
+    },
+    {
+      "id": "GPU-16",
+      "area": "GPU",
+      "title": "메모리 대역폭 (MB/frame, 읽기·쓰기)",
+      "unit": "MB/frame",
+      "kind": "amount",
+      "better": "lower",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.gpu_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "모바일은 60fps에서 대략 100MB/frame 유지, DRAM 접근 GB/s당 80~100mW [U38]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U38"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "gt",
+            "warn": 100,
+            "note": "60fps에서 대략 100MB/frame 유지[U38]",
+            "basis": "공식",
+            "sources": [
+              "U38"
+            ]
+          }
+        ]
+      },
+      "tags": [
+        "gpu_counter"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "부분(Mali 패키지·AGI)",
+        "noise": "중간",
+        "fix": "RT 전환·Store·고정밀 HDR → GPU-17·18"
+      }
+    },
+    {
+      "id": "GPU-17",
+      "area": "GPU",
+      "title": "URP Asset·렌더러 설정: Depth Texture·Opaque Texture, Depth Priming, Intermediate Texture, Store Actions, HDR 정밀도, MSAA",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "모바일 권장: Depth Priming Disabled, Depth Texture After Transparents, Store Actions Auto/Discard, Intermediate Auto, 필요할 때만 Depth/Opaque [U32][U33]. HDR 32bit(B10G11R11) 권장 [A1][U33]. MSAA 4x는 Arm상 비싸지 않음, Opaque Texture를 켜면 일부 모바일에서 MSAA 무시 [A1][U33]. Depth prepass 쓰지 말 것 [A1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1",
+          "U32",
+          "U33"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "SSAO·아웃라인이 depth·normal 요구 → 의존 확인 후 정리"
+      }
+    },
+    {
+      "id": "GPU-18",
+      "area": "GPU",
+      "title": "Render Graph 패스 병합·memoryless 리소스, 커스텀 렌더러 기능의 구 API(`Execute`/`Blit`) 사용",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "legacy_api_features"
+        },
+        {
+          "key": "merged_passes",
+          "better": "higher"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.source_scan"
+        },
+        "L2": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "editor.render_debug"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "partial",
+      "criteria": {
+        "text": "SRP Core 17은 `AddRasterRenderPass`로 Native Render Pass·framebuffer fetch 자동 [U42]. Compatibility Mode는 6.3부터 `URP_COMPATIBILITY_MODE` 정의 뒤로 숨김, 제거 예정 [U43]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U42",
+          "U43"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play(Render Graph Viewer)·정적",
+        "auto": "부분",
+        "noise": "없음",
+        "fix": "아웃라인 등 커스텀 패스가 병합을 끊음 → RG API로 이전"
+      }
+    },
+    {
+      "id": "GPU-19",
+      "area": "GPU",
+      "title": "그림자: 거리·캐스케이드 수·해상도·소프트 섀도·그림자 드리우는 렌더러 수",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "metrics": [
+        {
+          "key": "shadow_settings",
+          "kind": "snapshot"
+        },
+        {
+          "key": "shadow_casters",
+          "unit": "count",
+          "better": "lower",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        },
+        "L2": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "editor.render_debug"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음(\"Reduce\"). Soft Shadows Low=4탭(모바일용), 타일 GPU 영향 큼 [U33]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U33"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·Play",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "작은 소품까지 Cast Shadows → 끄기, 블롭 그림자"
+      }
+    },
+    {
+      "id": "GPU-20",
+      "area": "GPU",
+      "title": "SSAO 설정: Downsample, Blur Quality, Samples, Radius, After Opaque",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": true,
+      "set_basis": "기본 세트·심화 변형",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "영향 등급 Downsample·Blur Very high, Samples·Radius High, Samples 4→8이면 부하 2배, Downsample은 픽셀 1/4 [U46]. 타일 GPU에서 다패스 영향 큼",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U46"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ Downsample 켬, Samples Low"
+      }
+    },
+    {
+      "id": "GPU-21",
+      "area": "GPU",
+      "title": "후처리 효과 목록·비용(패스 수)",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "metrics": [
+        {
+          "key": "effects",
+          "kind": "snapshot"
+        },
+        {
+          "key": "post_passes",
+          "unit": "count",
+          "better": "lower",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        },
+        "L2": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "editor.frame_debugger"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "모바일 친화 효과 목록은 URP 16 기준 Bloom(HQ Filtering 끔)·Color Grading·Vignette 등. Bloom 하나 25 드로콜 사례 [U39]. Unity 6 목록은 확인 필요",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U39"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·Play",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 효과 정리, On-Tile Post(6.5+) 검토 [U44]"
+      }
+    },
+    {
+      "id": "GPU-22",
+      "area": "GPU",
+      "title": "아웃라인 패스 비용: 아웃라인 패스 draw·SetPass 증가분, 스텐실 사용",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "outline_draws"
+        },
+        {
+          "key": "outline_setpass"
+        }
+      ],
+      "layers": [
+        "L2"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.frame_debugger"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음. 인버티드 헐은 대상 수만큼 드로콜 추가. 스텐실 쓰는 fragment는 빠르게 못 버림, 같은 값이면 REPLACE 대신 KEEP [A1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play(Frame Debugger 패스 필터)",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "모든 캐릭터·오브젝트 상시 아웃라인 → 대상·거리 제한"
+      }
+    },
+    {
+      "id": "GPU-23",
+      "area": "GPU",
+      "title": "렌더링 경로·추가 조명 수·추가 조명 그림자",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.urp_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "모바일·조명 적으면 Forward 권장, 모바일 한도 Forward 메인1+추가32 [U45]. 추가 조명은 끄거나 Per Vertex, 그림자 끔 [U32]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U32",
+          "U45"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "GPU-24",
+      "area": "GPU",
+      "title": "컬링 효율: back-face 컬링 비율, 화면 밖 렌더러 제출",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "none",
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.render_debug"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.gpu_counters",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "Arm 절두체 안 삼각형 약 50% 컬링이 정상, 더 높으면 draw 단위 컬링 부족 [A1][U38]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A1",
+          "U38"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "gpu_counter"
+      ],
+      "source_text": {
+        "location": "기기(Mali)·Play",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "→ 컬링 그룹·LOD"
+      }
+    },
+    {
+      "id": "GPU-25",
+      "area": "GPU",
+      "title": "GPU 오클루전 컬링·GRD A/B",
+      "unit": "ms",
+      "kind": "time",
+      "better": "lower",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "high",
+          "judge": "change_only",
+          "collector": "device.frame_timing",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "manual",
+      "criteria": {
+        "text": "GRD·Render Graph 필요 [U36][G32], 가려짐 적은 장면은 오히려 손해 경고",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G32",
+          "U36"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "수동",
+        "noise": "높음",
+        "fix": "— 심화 실험만"
+      },
+      "note": "심화 A/B 실험. 결과는 FRM-01·GPU-02 지표로 비교"
+    },
+    {
+      "id": "MEM-01",
+      "area": "MEM",
+      "title": "**Anonymous RSS + Swap** 피크·P90 (MB) — 고정 시나리오",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "anon_swap_peak_mb"
+        },
+        {
+          "key": "anon_swap_p90_mb"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.proc_mem",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.proc_mem",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "게임 한도(포그라운드/백그라운드): 4GB 2.25/2.00GB, 6GB 2.75/2.50GB, 8GB 3.50/2.75GB, 12GB 4.00/3.20GB, 2027-02부터 노출 영향 가능 [G1b]. 파일 기반·GPU 전용 메모리 제외 [G9]. `/proc/<pid>/status` RssAnon+VmSwap 또는 Perfetto [G10]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G1b",
+          "G9",
+          "G10"
+        ],
+        "absolute": [
+          {
+            "metric": "anon_swap_peak_mb",
+            "op": "gt",
+            "fail_by_ram_class": {
+              "4GB": 2250,
+              "6GB": 2750,
+              "8GB": 3500,
+              "12GB": 4000
+            },
+            "note": "Play 게임 포그라운드 한도(GB 표기를 1GB=1000MB로 환산). RAM 등급은 프로필 기기 정의",
+            "basis": "공식",
+            "sources": [
+              "G1b"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "로딩 피크·누수 → MEM-07·09·11"
+      }
+    },
+    {
+      "id": "MEM-02",
+      "area": "MEM",
+      "title": "Android 17 Memory Limiter 대비 여유 (MiB)",
+      "unit": "MiB",
+      "kind": "amount",
+      "better": "higher",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.proc_mem",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "visible `memory.max`(high): 4GB 2048(1843), 6GB 4096(3686), 8GB 5120(4608), 3200MiB 미만 한도 없음 [G13]. 종료 시 크래시 스택 없이 `REASON_MEMORY_LIMITER` [G10]. 저사양 목표 기기가 4GB면 1843MiB 이하 제안",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "G10",
+          "G13"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "lt",
+            "fail": 0,
+            "note": "Android 17 Memory Limiter 대비 여유. 3200MiB 미만 기기 한도 없음",
+            "basis": "공식",
+            "sources": [
+              "G13"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "—"
+      },
+      "note": "Android 17 한도라 android-35 AVD에서는 값이 없어 L3-E에 넣지 않음"
+    },
+    {
+      "id": "MEM-03",
+      "area": "MEM",
+      "title": "PSS Total·Private Dirty·칸별(Native Heap, EGL/GL mtrack, Gfx dev, Unknown) (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "pss_total_mb"
+        },
+        {
+          "key": "private_dirty_mb"
+        },
+        {
+          "key": "native_heap_mb"
+        },
+        {
+          "key": "egl_mtrack_mb"
+        },
+        {
+          "key": "gl_mtrack_mb"
+        },
+        {
+          "key": "gfx_dev_mb"
+        },
+        {
+          "key": "unknown_mb"
+        },
+        {
+          "key": "code_mb"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.meminfo",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "device.meminfo",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음 — 분해용, 판정은 MEM-01 [G14]. **`dumpsys meminfo`가 히치를 만들 수 있음** → 프레임 측정 구간과 분리",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G14"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "—"
+      },
+      "note": "dumpsys meminfo는 프레임 측정 구간 밖에서만(히치 유발)"
+    },
+    {
+      "id": "MEM-04",
+      "area": "MEM",
+      "title": "Unity 메모리: Total Reserved·Used, System Used Memory (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "total_reserved_mb"
+        },
+        {
+          "key": "total_used_mb"
+        },
+        {
+          "key": "system_used_mb"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.unity_memory",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.unity_memory",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "`GetTotalReservedMemoryLong()+GetMonoHeapSizeLong()`이 Anon RSS+Swap과 대개 10% 이내 [G10]. Unity는 피크 페이지를 바로 돌려주지 않아 기준선이 피크를 따라감 [G11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G10",
+          "G11"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(릴리스 가능)",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "로딩 피크 → 분할 로드"
+      }
+    },
+    {
+      "id": "MEM-05",
+      "area": "MEM",
+      "title": "관리 힙 크기 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "managed_heap_mb"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.unity_memory",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.unity_memory",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "제안: 세트 미지정 → 기본(CPU-04와 같은 값)",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "CPU-04와 같은 값, 메모리 관점 판정",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "큰 컬렉션·캐시 → 용량 제한"
+      }
+    },
+    {
+      "id": "MEM-06",
+      "area": "MEM",
+      "title": "Memory Profiler 스냅샷 분류(Resident): Native·Managed·Graphics(추정)·Untracked·Android Runtime (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "native_mb"
+        },
+        {
+          "key": "managed_mb"
+        },
+        {
+          "key": "graphics_mb"
+        },
+        {
+          "key": "untracked_mb"
+        },
+        {
+          "key": "android_runtime_mb"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "partial",
+      "criteria": {
+        "text": "판정은 Resident 기준, Graphics는 Allocated 뷰 추정치 [U49]. 고정 시점(진입 직후·10분 뒤)",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U49"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(개발 빌드)",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "MEM-07",
+      "area": "MEM",
+      "title": "누수: 같은 상태로 돌아온 두 스냅샷의 차이(Unity Object 수·leaked managed shell), 장시간 세션 증가량",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "object_delta"
+        },
+        {
+          "key": "leaked_shells"
+        },
+        {
+          "key": "p99_p50_ratio",
+          "unit": "x",
+          "kind": "ratio"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "editor.memory_snapshot",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "스냅샷 비교 [U50]. Play 지표 P99/P50 ≥ 3.5배면 누수 의심 [G8]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G8",
+          "U50"
+        ],
+        "absolute": [
+          {
+            "metric": "p99_p50_ratio",
+            "op": "ge",
+            "warn": 3.5,
+            "note": "P99/P50 ≥ 3.5배면 누수 의심",
+            "basis": "공식",
+            "sources": [
+              "G8"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "부분",
+        "noise": "중간",
+        "fix": "이벤트 구독 미해제, static 참조, 풀 잔류 [G11] → 해제"
+      }
+    },
+    {
+      "id": "MEM-08",
+      "area": "MEM",
+      "title": "백그라운드 전환 뒤 Anon RSS (MB), `OnApplicationPause` 해제 동작",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "bg_anon_swap_mb"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.proc_mem",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "MEM-01의 백그라운드 열. 남은 trim 신호는 UI_HIDDEN·BACKGROUND뿐, Unity에선 `OnApplicationPause` [G7]. Java `onTrimMemory`는 데드락 위험 [G9]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G7",
+          "G9",
+          "G1b"
+        ],
+        "absolute": [
+          {
+            "metric": "bg_anon_swap_mb",
+            "op": "gt",
+            "fail_by_ram_class": {
+              "4GB": 2000,
+              "6GB": 2500,
+              "8GB": 2750,
+              "12GB": 3200
+            },
+            "note": "Play 게임 백그라운드 한도(1GB=1000MB 환산)",
+            "basis": "공식",
+            "sources": [
+              "G1b"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "→ 백그라운드에서 캐시 해제"
+      }
+    },
+    {
+      "id": "MEM-09",
+      "area": "MEM",
+      "title": "Addressables 중복 의존(Analyze「Check Duplicate Bundle Dependencies」 건수·MB)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "dup_count"
+        },
+        {
+          "key": "dup_mb",
+          "unit": "MB",
+          "kind": "amount"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "static.addressables_dupes"
+        },
+        "L1": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "build.layout"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인(번들 구조 변경)",
+      "auto": "auto",
+      "criteria": {
+        "text": "0건 목표, 격리 사례 SerializedFile 311→184MB [U51]. Build Layout으로 번들 크기 확인 [U52]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U51",
+          "U52"
+        ],
+        "absolute": [
+          {
+            "metric": "dup_count",
+            "op": "gt",
+            "warn": 0,
+            "note": "0건 목표[U51]",
+            "basis": "공식",
+            "sources": [
+              "U51"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "공유 자산 미격리 → Duplicate Asset Isolation 그룹"
+      }
+    },
+    {
+      "id": "MEM-10",
+      "area": "MEM",
+      "title": "로드된 번들·자산 수, 핸들 미해제",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "loaded_bundles"
+        },
+        {
+          "key": "loaded_assets"
+        },
+        {
+          "key": "unreleased_handles"
+        }
+      ],
+      "layers": [
+        "L2",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_profile"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.probe_state",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "번들마다 읽기 버퍼 2개(Android 개당 7KB) [U51]. `Resources.UnloadUnusedAssets`는 CPU 스파이크 크고 번들을 의도치 않게 내릴 수 있음 [G12]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G12",
+          "U51"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "Play·기기",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "Release 누락 → 핸들 수명 정리"
+      }
+    },
+    {
+      "id": "MEM-11",
+      "area": "MEM",
+      "title": "텍스처 메모리 합계·상위 N장 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "texture_total_mb"
+        },
+        {
+          "key": "top",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L1",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.layout"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 예산 없음, 프로젝트가 정함. R/W 켜면 이중 상주, 밉 끄면 약 33% 감소 [G11]",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "G11"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·빌드",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ AST-01~07"
+      }
+    },
+    {
+      "id": "MEM-12",
+      "area": "MEM",
+      "title": "메시 메모리 합계·상위 N개 (MB), 블렌드셰이프 데이터",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "mesh_total_mb"
+        },
+        {
+          "key": "blendshape_mb"
+        },
+        {
+          "key": "top",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L1",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.layout"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 예산 없음",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·빌드",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ AST-09~13"
+      }
+    },
+    {
+      "id": "MEM-13",
+      "area": "MEM",
+      "title": "오디오 메모리 (MB), 동시 보이스 수",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "audio_mb"
+        },
+        {
+          "key": "voices",
+          "unit": "count",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "저사양은 Max Real Voices 32→16 [G11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ AST-14~16"
+      }
+    },
+    {
+      "id": "MEM-14",
+      "area": "MEM",
+      "title": "애니메이션 클립 메모리 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "layers": [
+        "L1",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.layout"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 예산 없음. 압축 Off는 커짐 [U61]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U61"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·빌드",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ AST-17"
+      }
+    },
+    {
+      "id": "MEM-15",
+      "area": "MEM",
+      "title": "셰이더 메모리 (MB), 변형 청크 설정",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "shader_mb"
+        },
+        {
+          "key": "variant_chunk_settings",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "청크 수 기본 0=제한 없음 [U53], 청크 4MB, 변형 하나도 청크 전체 풀림 [G11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11",
+          "U53"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기·정적",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "→ 스트리핑, 청크 제한"
+      }
+    },
+    {
+      "id": "MEM-16",
+      "area": "MEM",
+      "title": "RenderTexture 메모리 (MB, 수)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "rt_mb"
+        },
+        {
+          "key": "rt_count",
+          "unit": "count",
+          "kind": "count"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "색만 쓰는 RT는 Depth None, UI 카메라 depth texture 끔 [G11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "→ 포맷·깊이 정리"
+      }
+    },
+    {
+      "id": "MEM-17",
+      "area": "MEM",
+      "title": "폰트 아틀라스 메모리 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "layers": [
+        "L1",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.layout"
+        },
+        "L3-D": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "editor.memory_snapshot",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "4096² Alpha8 한 장 16MiB(계산). 동적 폴백 권장 [G12]. 크기 기준 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "G12"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드·기기",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "큰 정적 아틀라스 → 분할·동적 폴백"
+      }
+    },
+    {
+      "id": "MEM-18",
+      "area": "MEM",
+      "title": "네이티브 버킷 할당자 실패 수(`[ALLOC_BUCKET]` Failed count)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.logcat",
+          "build_config": "development"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "피크 플레이에서 0에 가깝게, Android 기본 4MB 블록 1개 → 4~8로 [G11]. 에디터는 8블록이라 가려짐",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(개발 빌드, `-log-memory-performance-stats`)",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "→ 블록 수 조정"
+      }
+    },
+    {
+      "id": "AST-01",
+      "area": "AST",
+      "title": "텍스처 압축 형식·ASTC 블록 크기 (장 수, bpp)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람(화질)",
+      "auto": "auto",
+      "criteria": {
+        "text": "ASTC 사용, 큰 블록부터 실험 [G12]. 4x4=8bpp·6x6=3.56bpp·8x8=2bpp(계산). 노멀맵 6x6 가능 [A4]. 미지원 기기는 RGBA32로 풀림 [U56]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "A4",
+          "G12",
+          "U56"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "무압축·RGBA32 잔류 → ASTC"
+      }
+    },
+    {
+      "id": "AST-02",
+      "area": "AST",
+      "title": "Read/Write 켜진 텍스처 수 (PAA0002)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "꺼야 함, CPU·GPU 이중 상주 [U29][G11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11",
+          "U29"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 끔(런타임 `GetPixels` 사용처 확인)"
+      }
+    },
+    {
+      "id": "AST-03",
+      "area": "AST",
+      "title": "밉맵: UI·스프라이트에 켜짐(PAA0001), 3D에 꺼짐(PAA0000)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전(경로 규칙 있을 때)",
+      "auto": "auto",
+      "criteria": {
+        "text": "끄면 약 33% 감소 [G11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "경로 규칙 없음 → UI 경로 규칙"
+      }
+    },
+    {
+      "id": "AST-04",
+      "area": "AST",
+      "title": "최대 크기 초과·NPOT 텍스처 수",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "보기 괜찮은 가장 작은 크기, 2의 거듭제곱 [U57]. Auditor `TextureSizeLimit` 기본 2048(소스)",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U57"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ Max Size 낮춤"
+      }
+    },
+    {
+      "id": "AST-05",
+      "area": "AST",
+      "title": "밉맵 스트리밍 미사용 대형 텍스처(PAA0003), 스트리밍 예산",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "예산은 `desiredTextureMemory`보다 약간 크게 [U54]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U54"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 스트리밍 켬"
+      }
+    },
+    {
+      "id": "AST-06",
+      "area": "AST",
+      "title": "이방성 > 1(PAA0004), 단색인데 1x1 아님(PAA0005)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전",
+      "auto": "auto",
+      "criteria": {
+        "text": "[U29]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U29"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 1, 단색 텍스처 축소"
+      }
+    },
+    {
+      "id": "AST-07",
+      "area": "AST",
+      "title": "스프라이트 아틀라스 빈 공간 > 50%(PAA0006/0007)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "소스 기본값 50% [U29]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U29"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 패킹 재구성"
+      }
+    },
+    {
+      "id": "AST-08",
+      "area": "AST",
+      "title": "Crunch 사용 텍스처",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "디스크만 줄고 GPU 메모리 동일 [U55]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U55"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "메모리 절감 오해 → 용도 확인"
+      }
+    },
+    {
+      "id": "AST-09",
+      "area": "AST",
+      "title": "메시 Read/Write 켜짐(PAA1000)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "끔(기본 꺼짐) [U58]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U58"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 끔(런타임 메시 접근 확인)"
+      }
+    },
+    {
+      "id": "AST-10",
+      "area": "AST",
+      "title": "정점 ≤ 65535인데 32비트 인덱스(PAA1001)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전",
+      "auto": "auto",
+      "criteria": {
+        "text": "Auto 또는 16비트 [U29]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U29"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ Auto"
+      }
+    },
+    {
+      "id": "AST-11",
+      "area": "AST",
+      "title": "Mesh Compression·Vertex Compression",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "디스크만 줄고 런타임 동일, 양자화 오차 [U57]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U57"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "AST-12",
+      "area": "AST",
+      "title": "노멀·탄젠트·Blend Shape Normals 설정",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "Blend Shape Normals는 Normals와 맞춤, Import+Calculate 조합 버그는 6000.5.0a3 수정 [U59]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U59"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 프로젝트 후처리 규칙 유지"
+      }
+    },
+    {
+      "id": "AST-13",
+      "area": "AST",
+      "title": "애니메이션 없는 메시의 Rig·BlendShapes, 정점·삼각형 수 상한 초과",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "불필요 데이터 끔 [U58]. Auditor 기본 정점·삼각형 한도 각 5000(소스), 프로젝트가 에셋 종류별로 정함",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U58"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 끔, LOD"
+      }
+    },
+    {
+      "id": "AST-14",
+      "area": "AST",
+      "title": "오디오 Load Type",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전(규칙화 뒤)",
+      "auto": "auto",
+      "criteria": {
+        "text": "BGM Streaming(클립당 약 200KB 오버헤드), 긴 효과음 Compressed In Memory, 짧은 효과음 Decompress On Load [G11]. Decompress On Load는 Vorbis 약 10배·ADPCM 약 3.5배 메모리 [U60]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G11",
+          "U60"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "긴 BGM Decompress → Streaming"
+      }
+    },
+    {
+      "id": "AST-15",
+      "area": "AST",
+      "title": "오디오 압축 형식",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "잦은 효과음 ADPCM, 음악·중간 길이 Vorbis [U60]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U60"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "PCM 잔류 → 변경"
+      }
+    },
+    {
+      "id": "AST-16",
+      "area": "AST",
+      "title": "Force To Mono·Preload Audio Data·샘플레이트",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인(음량 변화)",
+      "auto": "auto",
+      "criteria": {
+        "text": "방향성 없는 소리 Mono로 50% 감소 [G11], 씬 시작에 불필요하면 Preload 끔 [G12]. 샘플레이트 기준은 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "G11",
+          "G12"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "AST-17",
+      "area": "AST",
+      "title": "애니메이션 압축(Off 클립 수, 오차 설정)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "Optimal 권장, Off는 메모리 증가, 기본 오차값은 문서에 없음 [U61]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U61"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ Optimal"
+      }
+    },
+    {
+      "id": "AST-18",
+      "area": "AST",
+      "title": "Optimize Game Objects·Extra Transforms",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람(부착용 본)",
+      "auto": "auto",
+      "criteria": {
+        "text": "트랜스폼 계층 제거, 필요한 본만 노출 [U62]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U62"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "AST-19",
+      "area": "AST",
+      "title": "TMP 폰트 에셋: 정적/동적, 아틀라스 크기, Clear Dynamic Data on Build, 폴백",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "동적은 원본 폰트 포함·런타임 비용, Multi Atlas 옵션 [U20]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U20"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 정적+동적 폴백"
+      }
+    },
+    {
+      "id": "AST-20",
+      "area": "AST",
+      "title": "규칙 강제 수단 존재 여부(AssetPostprocessor·Preset·Auditor 커스텀 분석기)",
+      "unit": "count",
+      "kind": "count",
+      "better": "higher",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.import_rules"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인(전체 재임포트 유발)",
+      "auto": "auto",
+      "criteria": {
+        "text": "Unity 권장 [U57][U30]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U30",
+          "U57"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "수동 관리 → 포스트프로세서 규칙화"
+      },
+      "note": "규칙 강제 수단(포스트프로세서·Preset·커스텀 분석기) 개수. 많을수록 좋음"
+    },
+    {
+      "id": "BLD-01",
+      "area": "BLD",
+      "title": "APK 크기·AAB 기기별 다운로드 크기 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "apk_mb"
+        },
+        {
+          "key": "aab_base_module_mb"
+        },
+        {
+          "key": "aab_download_mb"
+        }
+      ],
+      "layers": [
+        "L1"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "build.apk_size"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "AAB 기본 모듈 500MB, 다운로드 200MB 넘으면 모바일 데이터 경고, APK 업로드는 100MB [G15]. 기준선 대비 +2% 경고·+5% 실패(제안)",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "G15"
+        ],
+        "absolute": [
+          {
+            "metric": "aab_download_mb",
+            "op": "gt",
+            "warn": 200,
+            "note": "다운로드 200MB 넘으면 모바일 데이터 경고",
+            "basis": "공식",
+            "sources": [
+              "G15"
+            ]
+          },
+          {
+            "metric": "aab_base_module_mb",
+            "op": "gt",
+            "fail": 500,
+            "note": "AAB 기본 모듈 500MB",
+            "basis": "공식",
+            "sources": [
+              "G15"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "텍스처·블렌드셰이프·libil2cpp → 구성 분석(BLD-02)"
+      }
+    },
+    {
+      "id": "BLD-02",
+      "area": "BLD",
+      "title": "크기 구성: 번들별·자산 종류별·`libil2cpp.so`·상위 N 자산 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "libil2cpp_mb"
+        },
+        {
+          "key": "bundles",
+          "kind": "snapshot"
+        },
+        {
+          "key": "top_assets",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L1"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.layout"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "기준선 대비. Build Layout [U52]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U52"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ 해당 자산 AST-*"
+      }
+    },
+    {
+      "id": "BLD-03",
+      "area": "BLD",
+      "title": "Play Asset Delivery 배분(install-time/fast-follow/on-demand)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "max_pack_mb"
+        },
+        {
+          "key": "install_time_total_mb"
+        },
+        {
+          "key": "allocation",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L1"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "build.pad"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "install-time은 기기에 팩의 2배 여유 필요, 팩 1.5GB·install-time 합계 4GB [G16][G15]. Addressables for Android는 Install Time 그룹을 한 팩으로 [U73]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G15",
+          "G16",
+          "U73"
+        ],
+        "absolute": [
+          {
+            "metric": "max_pack_mb",
+            "op": "gt",
+            "fail": 1500,
+            "note": "팩 1.5GB(1GB=1000MB 환산)",
+            "basis": "공식",
+            "sources": [
+              "G16",
+              "G15"
+            ]
+          },
+          {
+            "metric": "install_time_total_mb",
+            "op": "gt",
+            "fail": 4000,
+            "note": "install-time 합계 4GB",
+            "basis": "공식",
+            "sources": [
+              "G16",
+              "G15"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "BLD-04",
+      "area": "BLD",
+      "title": "텍스처 압축 형식 타기팅",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "AAB에서만 동작, 기본 형식 ETC2 권장 [G17][U74]. 절감량 프로젝트가 측정",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G17",
+          "U74"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "BLD-05",
+      "area": "BLD",
+      "title": "16KB 페이지 정렬 (`zipalign -c -P 16`, `.so` LOAD 정렬 ≥ 2**14)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "so_unaligned"
+        },
+        {
+          "key": "zip_aligned",
+          "unit": "",
+          "better": "higher",
+          "kind": "bool"
+        }
+      ],
+      "layers": [
+        "L1"
+      ],
+      "by_layer": {
+        "L1": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "build.align16k"
+        }
+      },
+      "set": "basic",
+      "deep_variant": true,
+      "set_basis": "기본 세트·심화 변형",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "API 35+ 타깃은 지원 필수, 미지원 업데이트 2027-02-01부터 출시 불가, AGP 8.5.1+·NDK r28+ [G18]. Unity 6 지원 [G19]. 서드파티 SDK(분석·광고·어트리뷰션 등)가 흔한 원인",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G18",
+          "G19"
+        ],
+        "absolute": [
+          {
+            "metric": "so_unaligned",
+            "op": "gt",
+            "fail": 0,
+            "note": "2027-02-01부터 미지원 업데이트 출시 불가",
+            "basis": "공식",
+            "sources": [
+              "G18"
+            ]
+          },
+          {
+            "metric": "zip_aligned",
+            "op": "ne",
+            "fail": true,
+            "note": "zipalign -c -P 16 통과",
+            "basis": "공식",
+            "sources": [
+              "G18"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ SDK 업데이트"
+      }
+    },
+    {
+      "id": "BLD-06",
+      "area": "BLD",
+      "title": "타깃 API 레벨",
+      "unit": "API",
+      "kind": "count",
+      "better": "higher",
+      "metrics": [
+        {
+          "key": "target_api"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "2026-08-31부터 신규·업데이트 API 36 [G20]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G20"
+        ],
+        "absolute": [
+          {
+            "metric": "target_api",
+            "op": "lt",
+            "fail": 36,
+            "note": "2026-08-31부터 API 36",
+            "basis": "공식",
+            "sources": [
+              "G20"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "BLD-07",
+      "area": "BLD",
+      "title": "IL2CPP 코드 생성 옵션·Managed Stripping Level·Strip Engine Code, `libil2cpp.so` 크기 (MB)",
+      "unit": "MB",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "libil2cpp_mb"
+        },
+        {
+          "key": "il2cpp_settings",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        },
+        "L1": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "build.il2cpp"
+        }
+      },
+      "set": "basic",
+      "deep_variant": true,
+      "set_basis": "기본 세트·심화 변형",
+      "fix_risk": "review",
+      "fix_risk_text": "확인(`link.xml`)",
+      "auto": "auto",
+      "criteria": {
+        "text": "기본 「런타임 속도」, 「코드 크기·빌드 시간」은 크기를 줄이나 성능 저하 가능, 수치 기준 없음 [U63][U64]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U63",
+          "U64"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·빌드",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "→ A/B(크기 vs CPU 시간)"
+      }
+    },
+    {
+      "id": "BLD-08",
+      "area": "BLD",
+      "title": "대상 아키텍처 ARM64만",
+      "unit": "",
+      "kind": "bool",
+      "better": "higher",
+      "metrics": [
+        {
+          "key": "arm64_only"
+        }
+      ],
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "absolute+change",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전",
+      "auto": "auto",
+      "criteria": {
+        "text": "[U64]. Mono는 ARM64 불가 [U11]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U11",
+          "U64"
+        ],
+        "absolute": [
+          {
+            "metric": "arm64_only",
+            "op": "ne",
+            "warn": true,
+            "note": "ARM64만 대상",
+            "basis": "공식",
+            "sources": [
+              "U64"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "ARMv7 포함 → 제거"
+      }
+    },
+    {
+      "id": "BLD-09",
+      "area": "BLD",
+      "title": "측정용 빌드 구성 일치(Managed Code Variant, Script Debugging, Frame Timing Stats)",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "safe",
+      "fix_risk_text": "안전(검사만)",
+      "auto": "auto",
+      "criteria": {
+        "text": "6000.6 Variant: Release·Instrumented·Checked·Debug, 진단 정보는 크기·성능에 영향 [U65]. Script Debugging 켜면 Debug 수준",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "U65"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "구성 섞임 → 비교 무효"
+      },
+      "note": "측정 빌드 구성 일치 검사용. 회차 메타 build_config와 대조"
+    },
+    {
+      "id": "BLD-10",
+      "area": "BLD",
+      "title": "시작 시간 TTID 콜드·웜·핫 (초)",
+      "unit": "s",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "cold_s"
+        },
+        {
+          "key": "warm_s"
+        },
+        {
+          "key": "hot_s"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.startup",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "absolute+change",
+          "collector": "device.startup",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "Android vitals 과도: 콜드 ≥ 5초, 웜 ≥ 2초, 핫 ≥ 1.5초 [G4](Play 도움말은 핫 1초로 표기 차이 [G5]). `am start -S -W` TotalTime",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G4",
+          "G5"
+        ],
+        "absolute": [
+          {
+            "metric": "cold_s",
+            "op": "ge",
+            "fail": 5,
+            "note": "Android vitals 과도: 콜드 ≥ 5초",
+            "basis": "공식",
+            "sources": [
+              "G4"
+            ]
+          },
+          {
+            "metric": "warm_s",
+            "op": "ge",
+            "fail": 2,
+            "note": "웜 ≥ 2초",
+            "basis": "공식",
+            "sources": [
+              "G4"
+            ]
+          },
+          {
+            "metric": "hot_s",
+            "op": "ge",
+            "fail": 1.5,
+            "note": "핫 ≥ 1.5초(Play 도움말은 1초 표기[G5])",
+            "basis": "공식",
+            "sources": [
+              "G4"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간(10회 중앙값)",
+        "fix": "첫 씬 Awake 과부하 → 첫 씬 경량화·비동기"
+      }
+    },
+    {
+      "id": "BLD-11",
+      "area": "BLD",
+      "title": "TTFD — 게임 화면이 조작 가능해질 때까지 (초)",
+      "unit": "s",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "ttfd_s"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 수치 없음, 프로젝트가 정함. Unity는 첫 씬 로드 때 reportFullyDrawn 자동 호출, 직접 `DiagnosticsReporting.CallReportFullyDrawn` 가능 [U66]",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "U66"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "세이브 데이터·Addressables 초기화 직렬 → 병렬·지연 로드"
+      }
+    },
+    {
+      "id": "BLD-12",
+      "area": "BLD",
+      "title": "셰이더·PSO 첫 사용 히치: 첫 실행 vs 두 번째 실행 스파이크 수",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "first_run_spikes"
+        },
+        {
+          "key": "second_run_spikes"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "high",
+          "judge": "change_only",
+          "collector": "device.frame_timing",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "Vulkan에서 SVC.WarmUp·WarmupAllShaders 비권장 [U67]. GraphicsStateCollection 추적(개발 빌드)·워밍, 실험적 API [U68]. ms 기준 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "U67",
+          "U68"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기(Vulkan)",
+        "auto": "부분",
+        "noise": "높음(드라이버 캐시)",
+        "fix": "→ PSO 수집·워밍"
+      }
+    },
+    {
+      "id": "BLD-13",
+      "area": "BLD",
+      "title": "그래픽 API(Vulkan/GLES) 정책·거부 목록",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0",
+        "console"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        },
+        "console": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "partial",
+      "criteria": {
+        "text": "Vulkan 기본, 문제 기기는 하드웨어 프로필·거부 목록 [U64][U69], VkQuality [G23]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G23",
+          "U64",
+          "U69"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·콘솔",
+        "auto": "부분",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "THM-01",
+      "area": "THM",
+      "title": "열 여유값(0~1)·열 상태 단계, SoC·배터리 온도 (°C)",
+      "unit": "headroom",
+      "kind": "ratio",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "headroom_max"
+        },
+        {
+          "key": "thermal_status_max",
+          "unit": "단계",
+          "kind": "count"
+        },
+        {
+          "key": "soc_c_max",
+          "unit": "°C"
+        },
+        {
+          "key": "batt_c_max",
+          "unit": "°C"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "very_high",
+          "judge": "change_only",
+          "collector": "device.thermal",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "`getThermalHeadroom` 0=스로틀 없음, 1.0=SEVERE, 10초보다 자주 부르면 NaN [G25]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G25"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "thermal"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능(10초 간격)",
+        "noise": "매우 높음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "THM-02",
+      "area": "THM",
+      "title": "지속 성능 곡선: 분 단위 FPS·클럭 상한, 첫 스로틀까지 시간 (초)",
+      "unit": "s",
+      "kind": "time",
+      "better": "higher",
+      "metrics": [
+        {
+          "key": "time_to_first_throttle_s"
+        },
+        {
+          "key": "fps_per_min",
+          "better": "none",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "high",
+          "judge": "change_only",
+          "collector": "device.thermal",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": true,
+      "set_basis": "기본 세트·심화 변형",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "공식 최소 시간 없음. Arm 사례 약 5분 스로틀·10분 headroom 90% [A3]. 제안: 기본 10분, 심화 30분",
+        "basis": [
+          "공식",
+          "제안"
+        ],
+        "sources": [
+          "A3"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "thermal",
+        "gpu_clock"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "높음",
+        "fix": "GPU 상시 고부하 → GPU-* 절감, 품질 단계"
+      }
+    },
+    {
+      "id": "THM-03",
+      "area": "THM",
+      "title": "CPU·GPU 클럭 상한 하락 시점·폭 (MHz)",
+      "unit": "MHz",
+      "kind": "amount",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "cap_drop_time_s",
+          "unit": "s",
+          "better": "higher",
+          "kind": "time"
+        },
+        {
+          "key": "cap_drop_mhz",
+          "unit": "MHz"
+        }
+      ],
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "high",
+          "judge": "change_only",
+          "collector": "device.gpu_freq",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "THM-02와 함께, 기준선 대비 하락 시점이 늦어지면 개선",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [
+        "thermal",
+        "gpu_clock"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "높음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "THM-04",
+      "area": "THM",
+      "title": "Adaptive Performance 구성(프로바이더·스케일러)",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L0"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.project_settings"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "Android 프로바이더 5.1: Unity 2023.1+, Android 12+(열), 13+(Hint) [U72]. Framerate·Resolution·LOD 스케일러 [G26]. Samsung 프로바이더 5.1.0에서 지원 중단 [U71]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G26",
+          "U71",
+          "U72"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적",
+        "auto": "가능",
+        "noise": "없음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "THM-05",
+      "area": "THM",
+      "title": "전력 (mW 또는 µA)",
+      "unit": "mW",
+      "kind": "amount",
+      "better": "lower",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "very_high",
+          "judge": "change_only",
+          "collector": "device.power",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "ODPM 레일은 Pixel 6+만, 그 밖의 기기는 배터리 게이지(기기 전체, 잡음 큼) [G27]. 기준 프로젝트가 정함",
+        "basis": [
+          "공식",
+          "프로젝트가 정함"
+        ],
+        "sources": [
+          "G27"
+        ],
+        "absolute": []
+      },
+      "tags": [
+        "power",
+        "battery"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "부분",
+        "noise": "매우 높음",
+        "fix": "화면 주사율 > 목표, 메뉴에서도 풀 렌더 → `OnDemandRendering` [U70][G21]"
+      }
+    },
+    {
+      "id": "THM-06",
+      "area": "THM",
+      "title": "프레임 정책: 팝업·정적 화면에서 렌더 간격, 풀스크린 UI 시 3D 카메라",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "metrics": [
+        {
+          "key": "render_interval",
+          "kind": "snapshot"
+        },
+        {
+          "key": "camera_off_under_fullscreen_ui",
+          "kind": "bool"
+        }
+      ],
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "by_layer": {
+        "L0": {
+          "noise": "none",
+          "judge": "change_only",
+          "collector": "static.ui_scan"
+        },
+        "L2": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "editor.play_profile"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "partial",
+      "criteria": {
+        "text": "풀스크린 UI 때 3D 카메라 끄고 프레임 낮춤 [U18]. 주사율이 목표보다 높으면 전력만 늘어남 [G21]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G21",
+          "U18"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "정적·Play",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "→ OnDemandRendering, 카메라 끄기"
+      }
+    },
+    {
+      "id": "THM-07",
+      "area": "THM",
+      "title": "측정 조건 기록: 시작 온도·충전 여부·밝기·주변 온도",
+      "unit": "",
+      "kind": "snapshot",
+      "better": "none",
+      "layers": [
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "n/a",
+          "judge": "record",
+          "collector": "run.conditions",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "비교 유효성 판정용(6절)",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [
+        "thermal",
+        "battery"
+      ],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "—",
+        "fix": "—"
+      },
+      "note": "회차 유효성 판정용. 값은 회차 메타(thermal_start·ap_c_start 등)에서 옮김"
+    },
+    {
+      "id": "STB-01",
+      "area": "STB",
+      "title": "사용자 인지 크래시율 (%DAU)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "console"
+      ],
+      "by_layer": {
+        "console": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "전체 1.09%, 기종별 8%, 28일 평균 [G1]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G1"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "gt",
+            "fail": 1.09,
+            "note": "전체 1.09%, 기종별 8%",
+            "basis": "공식",
+            "sources": [
+              "G1"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔",
+        "auto": "가능(Reporting API)",
+        "noise": "낮음",
+        "fix": "네이티브 SDK·OOM → 톰스톤 심볼 [G33][U75]"
+      }
+    },
+    {
+      "id": "STB-02",
+      "area": "STB",
+      "title": "사용자 인지 ANR율 (%DAU)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "console"
+      ],
+      "by_layer": {
+        "console": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "전체 0.47%, 기종별 8% [G1]. 입력 5초 무응답 등 [G6]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G1",
+          "G6"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "gt",
+            "fail": 0.47,
+            "note": "전체 0.47%, 기종별 8%",
+            "basis": "공식",
+            "sources": [
+              "G1"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "메인(Java) 스레드 블록, SDK 초기화 → 비동기"
+      }
+    },
+    {
+      "id": "STB-03",
+      "area": "STB",
+      "title": "사용자 인지 LMK율 (%)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "L3-D",
+        "console"
+      ],
+      "by_layer": {
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.exit_info",
+          "build_config": "release"
+        },
+        "console": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "1% 초과면 즉시 조치, 2025-01-28부터 데이터 [G7]. 기기에서 `getHistoricalProcessExitReasons()`로 수집 가능",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G7"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "gt",
+            "fail": 1,
+            "layers": [
+              "console"
+            ],
+            "note": "1% 초과면 즉시 조치",
+            "basis": "공식",
+            "sources": [
+              "G7"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔·기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ MEM-*"
+      }
+    },
+    {
+      "id": "STB-04",
+      "area": "STB",
+      "title": "메모리 바이탈(Anon RSS+Swap 등급별)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "console"
+      ],
+      "by_layer": {
+        "console": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "MEM-01과 같은 한도 [G1b]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G1b"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ MEM-*"
+      }
+    },
+    {
+      "id": "STB-05",
+      "area": "STB",
+      "title": "느린 세션 비율 (%)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "console"
+      ],
+      "by_layer": {
+        "console": {
+          "noise": "high",
+          "judge": "change_only",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "partial",
+      "criteria": {
+        "text": "FRM-03 정의, 공개된 나쁜 행동 비율 없음 [G2][G5]. Android Performance Tuner 히스토그램은 문서 존재, 현재 콘솔 상태 미확인 [G24]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G2",
+          "G5",
+          "G24"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔",
+        "auto": "부분",
+        "noise": "높음(실사용자 분포)",
+        "fix": "→ FRM·GPU"
+      }
+    },
+    {
+      "id": "STB-06",
+      "area": "STB",
+      "title": "과도한 partial wake lock (세션 %)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "console"
+      ],
+      "by_layer": {
+        "console": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "auto",
+      "criteria": {
+        "text": "비면제 wake lock 24시간 중 2시간 이상이면 과도, 세션 5% 넘으면 노출 영향 [G28], 2026-03-01부터 단계 적용 [G29](도움말엔 옛 3시간 표기)",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G28",
+          "G29"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "gt",
+            "fail": 5,
+            "note": "세션 5% 넘으면 노출 영향",
+            "basis": "공식",
+            "sources": [
+              "G28"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "광고·MMP·푸시 SDK → SDK 설정·버전"
+      }
+    },
+    {
+      "id": "STB-07",
+      "area": "STB",
+      "title": "과도한 wakeup·멈춘 wake lock",
+      "unit": "회/시간",
+      "kind": "ratio",
+      "better": "lower",
+      "layers": [
+        "console"
+      ],
+      "by_layer": {
+        "console": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "console.vitals"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "human",
+      "fix_risk_text": "사람",
+      "auto": "partial",
+      "criteria": {
+        "text": "시간당 10회 초과, 1시간 초과 wake lock(상대 기준) [G5]. 로컬 푸시 알람 확인",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G5"
+        ],
+        "absolute": [
+          {
+            "metric": "value",
+            "op": "gt",
+            "warn": 10,
+            "note": "시간당 10회 초과",
+            "basis": "공식",
+            "sources": [
+              "G5"
+            ]
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "콘솔",
+        "auto": "부분",
+        "noise": "낮음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "STB-08",
+      "area": "STB",
+      "title": "기기 실행 중 logcat 예외·오류 수 (Unity `Exception`, `[ClassName]` 경고·오류, `AndroidRuntime`, 네이티브 `DEBUG`)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "exceptions"
+        },
+        {
+          "key": "class_warnings"
+        },
+        {
+          "key": "class_errors"
+        },
+        {
+          "key": "android_runtime"
+        },
+        {
+          "key": "native_debug"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.logcat",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "absolute+change",
+          "collector": "device.logcat",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "기준: 0건(제안), 기준선 대비 새 메시지 0",
+        "basis": [
+          "제안"
+        ],
+        "sources": [],
+        "absolute": [
+          {
+            "metric": "exceptions",
+            "op": "gt",
+            "warn": 0,
+            "note": "0건 제안",
+            "basis": "제안",
+            "sources": []
+          }
+        ]
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "→ 메시지별 수정"
+      }
+    },
+    {
+      "id": "STB-09",
+      "area": "STB",
+      "title": "`Choreographer: Skipped N frames`, `ANR in`, `lowmemorykiller`/`lmkd` 로그",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "choreographer_skipped"
+        },
+        {
+          "key": "anr"
+        },
+        {
+          "key": "lmk"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.logcat",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.logcat",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "Choreographer는 기본 30프레임 이상 밀렸을 때만 찍고 Java UI 스레드 기준(Unity 렌더 끊김 아님) [G34]. 나머지는 관례 grep",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G34"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "—"
+      }
+    },
+    {
+      "id": "STB-10",
+      "area": "STB",
+      "title": "비정상 종료 사유(`ApplicationExitInfo`: LOW_MEMORY·MEMORY_LIMITER·ANR·CRASH_NATIVE)",
+      "unit": "count",
+      "kind": "count",
+      "better": "lower",
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.exit_info",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "low",
+          "judge": "change_only",
+          "collector": "device.exit_info",
+          "build_config": "release"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "기본 세트",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "[G7][G10]",
+        "basis": [
+          "공식"
+        ],
+        "sources": [
+          "G7",
+          "G10"
+        ],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "낮음",
+        "fix": "—"
+      },
+      "note": "에뮬레이터에서도 크래시·종료 사유 확인에 씀(완주 검증 목적)"
+    },
+    {
+      "id": "STB-11",
+      "area": "STB",
+      "title": "시작·진입 로그 단계별 시각(시작 단계 로그 마커)",
+      "unit": "s",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "stages",
+          "better": "none",
+          "kind": "snapshot"
+        },
+        {
+          "key": "boot_total_s"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "medium",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release"
+        }
+      },
+      "set": "deep",
+      "deep_variant": false,
+      "set_basis": "심화 세트",
+      "fix_risk": "review",
+      "fix_risk_text": "확인",
+      "auto": "auto",
+      "criteria": {
+        "text": "기준선 대비, 프로젝트가 정함",
+        "basis": [
+          "프로젝트가 정함"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "중간",
+        "fix": "초기화 순서 → 병렬화"
+      }
+    }
+  ],
+  "aux": [
+    {
+      "id": "AUX-01",
+      "area": "AUX",
+      "title": "프로세스 CPU 점유율 (%, 코어 합)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "proc_cpu_pct_avg"
+        },
+        {
+          "key": "proc_cpu_pct_p95"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.proc_cpu",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "unknown",
+          "judge": "change_only",
+          "collector": "device.proc_cpu",
+          "build_config": "release",
+          "note": "실기기 A/A 잡음 바닥 전까지 근거 없음(high처럼 다룸)"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "제안: 123항목 밖 보조 지표(에뮬레이터 부하율·점유율·로드 시간)",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "/proc/<pid>/stat 델타. 공식 수치 없음, 기준선 대비 변화만",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "A/A로 잼",
+        "fix": "—"
+      },
+      "note": "123항목 밖. 매니페스트 검사의 항목 수에 세지 않음"
+    },
+    {
+      "id": "AUX-02",
+      "area": "AUX",
+      "title": "스레드별 CPU 점유율 (UnityMain·UnityGfx·워커, %)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "main_pct"
+        },
+        {
+          "key": "gfx_pct"
+        },
+        {
+          "key": "workers_pct"
+        },
+        {
+          "key": "threads",
+          "better": "none",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.proc_cpu",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "unknown",
+          "judge": "change_only",
+          "collector": "device.proc_cpu",
+          "build_config": "release",
+          "note": "실기기 A/A 잡음 바닥 전까지 근거 없음(high처럼 다룸)"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "제안: 123항목 밖 보조 지표(에뮬레이터 부하율·점유율·로드 시간)",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "/proc/<pid>/task/*/stat 델타. 공식 수치 없음, 기준선 대비 변화만",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "A/A로 잼",
+        "fix": "—"
+      },
+      "note": "123항목 밖. 매니페스트 검사의 항목 수에 세지 않음"
+    },
+    {
+      "id": "AUX-03",
+      "area": "AUX",
+      "title": "시스템 부하 (/proc/stat 사용률 %, loadavg)",
+      "unit": "%",
+      "kind": "ratio",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "sys_busy_pct"
+        },
+        {
+          "key": "loadavg_1m",
+          "unit": "",
+          "kind": "ratio"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.sys_load",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "unknown",
+          "judge": "change_only",
+          "collector": "device.sys_load",
+          "build_config": "release",
+          "note": "실기기 A/A 잡음 바닥 전까지 근거 없음(high처럼 다룸)"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "제안: 123항목 밖 보조 지표(에뮬레이터 부하율·점유율·로드 시간)",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "/proc/stat·/proc/loadavg. 공식 수치 없음, 기준선 대비 변화만",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "A/A로 잼",
+        "fix": "—"
+      },
+      "note": "123항목 밖. 매니페스트 검사의 항목 수에 세지 않음"
+    },
+    {
+      "id": "AUX-04",
+      "area": "AUX",
+      "title": "로드 구간 시간 (측정 모드 로그의 load_* 구간 마커 사이, s)",
+      "unit": "s",
+      "kind": "time",
+      "better": "lower",
+      "metrics": [
+        {
+          "key": "load_total_s"
+        },
+        {
+          "key": "phases",
+          "better": "none",
+          "kind": "snapshot"
+        }
+      ],
+      "layers": [
+        "L3-E",
+        "L3-D"
+      ],
+      "by_layer": {
+        "L3-E": {
+          "noise": "pending_aa",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release",
+          "note": "에뮬레이터 A/A 잡음 바닥 대기(프로젝트 프로필에서 채움). 절대 기준 없이 기준 대비 변화만"
+        },
+        "L3-D": {
+          "noise": "unknown",
+          "judge": "change_only",
+          "collector": "device.phase_markers",
+          "build_config": "release",
+          "note": "실기기 A/A 잡음 바닥 전까지 근거 없음(high처럼 다룸)"
+        }
+      },
+      "set": "basic",
+      "deep_variant": false,
+      "set_basis": "제안: 123항목 밖 보조 지표(에뮬레이터 부하율·점유율·로드 시간)",
+      "fix_risk": "none",
+      "fix_risk_text": "—",
+      "auto": "auto",
+      "criteria": {
+        "text": "씬·Addressables 로드 구간 마커 간격(게임 쪽 측정 코드). 공식 수치 없음, 기준선 대비 변화만",
+        "basis": [
+          "없음"
+        ],
+        "sources": [],
+        "absolute": []
+      },
+      "tags": [],
+      "source_text": {
+        "location": "기기",
+        "auto": "가능",
+        "noise": "A/A로 잼",
+        "fix": "—"
+      },
+      "note": "123항목 밖. 매니페스트 검사의 항목 수에 세지 않음"
+    }
+  ]
+}
