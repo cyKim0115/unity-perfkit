@@ -52,6 +52,7 @@ class ProbeParseTest(unittest.TestCase):
         self.assertEqual(items["FRM-01"]["status"], "ok")
         self.assertEqual(items["FRM-01"]["samples"], 50)              # near 20 + pan 10 + far 20
         self.assertIn("p95", items["FRM-01"]["values"])
+        self.assertIsNotNone(items["FRM-01"]["cpu_frame_p50"])
         self.assertGreater(items["FRM-03"]["values"]["fps_avg"], 0)
         self.assertIn("setpass_near", items["GPU-04"]["values"])
         self.assertNotIn("batches_near", items["GPU-04"]["values"])  # dcRecorder=False

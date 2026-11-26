@@ -107,8 +107,11 @@ def frame_items(log: ProbeLog, frames: list[dict], device_kind: str) -> dict:
         by_phase[n] = {"frames": len(rows), "main_p50": r(pct(_vals(rows, "mainMs", True), 50)),
                        "render_p50": r(pct(_vals(rows, "renderMs", True), 50)),
                        "dt_p50": r(pct(_vals(rows, "dtMs", True), 50))}
+    cpu = _vals(mf, "cpuMs", True)
     items["FRM-01"] = _ok({"p50": r(pct(main, 50)), "p95": r(pct(main, 95)), "p99": r(pct(main, 99))},
                           "device.frame_timing", "ms", samples=len(main), phases=by_phase,
+                          cpu_frame_p50=r(pct(cpu, 50)), cpu_frame_p95=r(pct(cpu, 95)),
+                          dt_p50=r(pct(_vals(mf, "dtMs", True), 50)),
                           why="FrameTiming main 값 없음(-1)")
     items["FRM-02"] = _ok({"p50": r(pct(render, 50)), "p95": r(pct(render, 95))}, "device.frame_timing", "ms",
                           samples=len(render), why="FrameTiming render 값 없음(-1)")
