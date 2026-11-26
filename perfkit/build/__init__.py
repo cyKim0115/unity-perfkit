@@ -19,6 +19,7 @@ def register_cli(sub) -> None:
     p.add_argument("--stamp", help="결과 폴더 이름(기본: APK가 든 폴더 이름)")
     p.add_argument("--out", help="결과 JSON 경로(기본: 결과 폴더/builds/<stamp>/l1.json)")
     p.add_argument("--top", type=int, default=20, help="상위 목록 길이")
+    p.add_argument("--editor", help="에디터 점검 결과(audit.json)의 L1 값(셰이더 키워드 수 등)을 합침")
     p.add_argument("--no-run-meta", action="store_true", help="옆 파일 <이름>.run.json을 쓰지 않음")
     p.add_argument("--print", action="store_true", help="파일 대신 결과 JSON을 표준 출력으로")
     p.set_defaults(func=_run)
@@ -33,6 +34,14 @@ def _run(args) -> int:
         print("error: --apk·--log·--layout 중 하나 이상")
         return 2
     result, meta = run(args.apk, log=args.log, layout=args.layout, top=args.top)
+    if args.editor:
+        from perfkit.static.editor_merge import EditorAuditError, merge
+        try:
+            result = merge(result, resultio.read(args.editor), layer="L1")
+        except EditorAuditError as exc:
+            print(f"error: {exc}")
+            return 2
+        meta["editor"] = str(args.editor)
     errs = validate(result, "result")
     if errs:
         for e in errs[:20]:

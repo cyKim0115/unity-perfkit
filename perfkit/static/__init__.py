@@ -25,6 +25,7 @@ def register_cli(sub) -> None:
     p = sub.add_parser("static", help="L0 정적 점검(스크립트 규칙·임포트 설정·프로젝트 설정)")
     p.add_argument("--project", help="Unity 프로젝트 폴더(기본: 프로필 [static] project)")
     p.add_argument("--out", help="결과 JSON 경로(기본: 결과 폴더/static/<날짜>-<커밋8>/source.json)")
+    p.add_argument("--editor", help="에디터 점검 결과(audit.json)를 합침(perfkit/editor-audit@1)")
     p.add_argument("--no-run-meta", action="store_true", help="옆 파일 <이름>.run.json을 쓰지 않음")
     p.add_argument("--print", action="store_true", help="파일 대신 결과 JSON을 표준 출력으로")
     p.set_defaults(func=_run)
@@ -40,6 +41,14 @@ def _run(args) -> int:
         print("error: Unity 프로젝트 폴더가 없음(--project 또는 프로필 [static] project)")
         return 2
     result, meta = run(cfg["project"], cfg)
+    if args.editor:
+        from perfkit.static.editor_merge import EditorAuditError, merge
+        try:
+            result = merge(result, resultio.read(args.editor), layer="L0")
+        except EditorAuditError as exc:
+            print(f"error: {exc}")
+            return 2
+        meta["editor"] = str(args.editor)
     errs = validate(result, "result")
     if errs:
         for e in errs[:20]:
