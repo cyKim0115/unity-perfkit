@@ -166,6 +166,24 @@ MonoBehaviour:
 """
 
 
+FONT_ASSET_HEAD = """--- !u!28 &1
+Texture2D:
+  m_Name: F Atlas
+  image data: 4096
+  _typelessdata: """
+
+FONT_ASSET_TAIL = """
+--- !u!114 &2
+MonoBehaviour:
+  m_Name: F SDF
+  m_AtlasPopulationMode: 1
+  m_ClearDynamicDataOnBuild: 0
+  m_AtlasWidth: 1024
+  m_AtlasHeight: 1024
+  m_FallbackFontAssetTable: []
+"""
+
+
 def png_bytes(w: int, h: int) -> bytes:
     raw = b"".join(b"\x00" + b"\x00\x00\x00\x00" * w for _ in range(h))
 
@@ -287,6 +305,7 @@ def make_project(root: Path) -> Path:
     w("Assets/Settings/URP.asset.meta", "fileFormatVersion: 2\nguid: 1111111111111111111111111111aaaa\n")
     w("Assets/Settings/Renderer.asset", RENDERER)
     w("Assets/Settings/Renderer.asset.meta", "fileFormatVersion: 2\nguid: 2222222222222222222222222222bbbb\n")
+    w("Assets/Font/F SDF.asset", FONT_ASSET_HEAD + "00" * 4000 + FONT_ASSET_TAIL)
     w("Assets/Mat/clip.mat", "Material:\n  m_ValidKeywords:\n  - _ALPHATEST_ON\n  m_Floats:\n    - _Surface: 0\n")
     return root
 

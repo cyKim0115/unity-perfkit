@@ -102,6 +102,8 @@ class StaticCollectTest(unittest.TestCase):
         self.assertEqual(v("AST-15"), {"value": 1})
         self.assertEqual(it["AST-16"]["detail"]["stereo_not_forced_mono"], 1)
         self.assertEqual(v("AST-20"), {"value": 1})
+        self.assertEqual(v("AST-19"), {"value": 1})  # 아틀라스 데이터가 앞에 와도 폰트 칸을 찾음
+        self.assertEqual(it["AST-19"]["detail"]["fonts"][0]["atlas_width"], 1024)
         # 설정
         self.assertEqual(v("BLD-06"), {"target_api": 35})
         self.assertEqual(v("BLD-08"), {"arm64_only": False})

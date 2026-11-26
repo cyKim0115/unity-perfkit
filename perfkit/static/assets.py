@@ -230,13 +230,15 @@ def _material(project: Project, rel: str) -> dict:
 
 
 def _tmp_font(project: Project, rel: str) -> dict | None:
+    # 아틀라스 텍스처(긴 image data 줄)가 앞에 오는 경우가 많아 파일 전체에서 짧은 줄만 모은다.
     try:
-        with open(project.abs(rel), encoding="utf-8", errors="replace") as f:
-            head = f.read(65536)
+        with open(project.abs(rel), "rb") as f:
+            raw = f.read()
     except OSError:
         return None
-    if "m_AtlasPopulationMode" not in head:
+    if b"m_AtlasPopulationMode" not in raw:
         return None
+    head = "\n".join(l for l in raw.decode("utf-8", errors="replace").splitlines() if len(l) < 400)
 
     def ival(name, default=None):
         m = re.search(rf"^\s*{name}:\s*(-?\d+)\s*$", head, re.M)
