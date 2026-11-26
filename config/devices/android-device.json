@@ -1,0 +1,37 @@
+{
+  "$comment": "실기기 일반 값. SoC별 sysfs 경로는 SoC preset(exynos-mali·qualcomm-adreno)이나 프로필에서 채운다.",
+  "kind": "device",
+  "serial": null,
+  "timestats": true,
+  "thread_groups": {
+    "main": "^(UnityMain|Unity Main)",
+    "gfx": "^UnityGfx",
+    "workers": "^(Job[.]Worker|Worker Thread|Background Job)"
+  },
+  "sysfs": {
+    "cpu_freq": [],
+    "cpu_freq_scale": 0.001,
+    "gpu_clock": null,
+    "gpu_clock_scale": 1.0,
+    "gpu_busy": null,
+    "gpu_max_clock": null
+  },
+  "thermal": {
+    "sensors": {"ap": "AP", "skin": "SKIN", "bat": "BAT"},
+    "every_samples": 6
+  },
+  "cool": {
+    "max_ap": 38.0,
+    "max_skin": 35.5,
+    "max_status": 0,
+    "timeout_s": 1800,
+    "poll_s": 15
+  },
+  "prep": {
+    "airplane": true,
+    "brightness": 128,
+    "stay_on": true,
+    "game_mode": "standard",
+    "fixed_perf": false
+  }
+}

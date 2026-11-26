@@ -1,0 +1,16 @@
+{
+  "$comment": "Snapdragon + Adreno 기기. kgsl 경로(Hz 단위 클럭). 경로는 perfkit device doctor로 확인한다.",
+  "extends": "android-device",
+  "sysfs": {
+    "cpu_freq": [
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq",
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq",
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq"
+    ],
+    "cpu_freq_scale": 0.001,
+    "gpu_clock": "/sys/class/kgsl/kgsl-3d0/gpuclk",
+    "gpu_clock_scale": 0.000001,
+    "gpu_busy": "/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage",
+    "gpu_max_clock": "/sys/class/kgsl/kgsl-3d0/max_gpuclk"
+  }
+}

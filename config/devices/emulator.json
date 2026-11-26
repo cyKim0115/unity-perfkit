@@ -1,0 +1,17 @@
+{
+  "$comment": "Android 에뮬레이터(AVD) 일반 값. AVD 이름과 기대 설정(expect)은 프로젝트 프로필 [devices.<이름>]에서 정한다.",
+  "kind": "emulator",
+  "serial": "emulator-5554",
+  "lease": "emu-lab",
+  "avd": null,
+  "expect": {},
+  "avd_mismatch": "refuse",
+  "timestats": false,
+  "thread_groups": {
+    "main": "^(UnityMain|Unity Main)",
+    "gfx": "^UnityGfx",
+    "workers": "^(Job[.]Worker|Worker Thread|Background Job)"
+  },
+  "sysfs": {},
+  "thermal": {}
+}

@@ -1,0 +1,16 @@
+{
+  "$comment": "Exynos + Mali 기기(예: 일부 Galaxy). 경로는 커널마다 다를 수 있어 perfkit device doctor로 확인한다.",
+  "extends": "android-device",
+  "sysfs": {
+    "cpu_freq": [
+      "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq",
+      "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq",
+      "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq"
+    ],
+    "cpu_freq_scale": 0.001,
+    "gpu_clock": "/sys/kernel/gpu/gpu_clock",
+    "gpu_clock_scale": 1.0,
+    "gpu_busy": "/sys/kernel/gpu/gpu_busy",
+    "gpu_max_clock": "/sys/kernel/gpu/gpu_max_clock"
+  }
+}
