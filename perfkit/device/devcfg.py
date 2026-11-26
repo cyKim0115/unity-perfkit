@@ -39,6 +39,8 @@ RUN_DEFAULTS = {
     "remote_perf_dir": "{files}/perf",
     "remote_saves_dir": "{files}/perf/saves",
     "install_timeout_s": 900,
+    # -d: 버전 코드가 낮은 기준 APK(ABAB의 옛 빌드)도 덮어 설치(디버그 가능 기기·앱에서만 됨)
+    "install_args": ["-r", "-d"],
     "extra_args": "",
     "cold_start_count": 10,
 }

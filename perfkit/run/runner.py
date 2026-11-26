@@ -278,6 +278,23 @@ def run_once(spec: RunSpec, env: Env) -> Outcome:
     if run_dir.exists():
         raise Refused(f"회차 폴더가 이미 있음: {run_dir}", 2)
     run_dir.mkdir(parents=True)
+    try:
+        return _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, log_lines, log, apk, ai, bi,
+                           package, activity, perf_dir, saves_root, emu, avd_issues, commit, build_hash, b8,
+                           run_id, run_dir)
+    except Refused:
+        import shutil
+
+        if not (run_dir / "meta.json").exists():
+            ref = env.results / "refused"
+            ref.mkdir(parents=True, exist_ok=True)
+            (ref / f"{run_id}.log").write_text("\n".join(log_lines) + "\n", encoding="utf-8")
+            shutil.rmtree(run_dir, ignore_errors=True)
+        raise
+
+
+def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, log_lines, log, apk, ai, bi, package,
+                activity, perf_dir, saves_root, emu, avd_issues, commit, build_hash, b8, run_id, run_dir):
     session = spec.session or f"{datetime.now():%Y%m%d-%H%M}-{spec.scenario}-{spec.kind}"
     started_at = _now_iso()
     log(f"run {run_id} device={spec.device}({kind}) serial={adb.serial} package={package} session={session}")
@@ -313,10 +330,14 @@ def run_once(spec: RunSpec, env: Env) -> Outcome:
     install_s = None
     if apk and spec.install:
         t = env.clock()
-        r = adb.run("install", "-r", str(apk), timeout=float(run_cfg["install_timeout_s"]))
+        r = adb.run("install", *list(run_cfg.get("install_args") or ["-r"]), str(apk),
+                    timeout=float(run_cfg["install_timeout_s"]))
         install_s = round(env.clock() - t, 1)
         if "Success" not in (r.stdout + r.stderr):
-            raise Refused(f"설치 실패: {(r.stdout + r.stderr).strip()[-300:]}", 3)
+            msg = (r.stdout + r.stderr).strip()[-300:]
+            if "VERSION_DOWNGRADE" in msg:
+                msg += " → 옛 빌드를 덮으려면 디버그 가능 기기·앱이어야 함(-d). 아니면 기기에서 앱을 지운 뒤 다시"
+            raise Refused(f"설치 실패: {msg}", 3)
         log(f"install -r {apk.name} {install_s}s")
     pushed = 0
     save_files = []

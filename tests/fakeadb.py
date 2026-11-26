@@ -167,6 +167,8 @@ class FakeDevice:
         if c == "get-state":
             return Result(0, "device\n")
         if c == "install":
+            if getattr(self, "install_fail", None):
+                return Result(1, "Performing Streamed Install\n", f"adb: failed to install: Failure [{self.install_fail}]")
             self.installed.add(self.package)
             return Result(0, "Performing Streamed Install\nSuccess\n")
         if c == "push":

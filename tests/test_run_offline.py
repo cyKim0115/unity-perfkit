@@ -206,6 +206,15 @@ class RunOnceTest(unittest.TestCase):
                 run_once(self.spec(sb), _env(sb, FakeDevice(), FakeProbe(busy_cmd=build)))
             self.assertEqual(cm.exception.code, 4)
             self.assertFalse((sb.results / "runs").exists())
+        with Sandbox() as sb:
+            dev = FakeDevice()
+            dev.install_fail = "INSTALL_FAILED_VERSION_DOWNGRADE: Downgrade detected"
+            with self.assertRaises(Refused) as cm:
+                run_once(self.spec(sb), _env(sb, dev))
+            self.assertEqual(cm.exception.code, 3)
+            self.assertEqual([p for p in (sb.results / "runs").iterdir()], [])   # 빈 회차 폴더를 남기지 않음
+            self.assertEqual(len(list((sb.results / "refused").iterdir())), 1)
+            self.assertIn(["install", "-r", "-d", str(sb.apk)], dev.calls)
         bad_avd = PROFILE.replace("cores = 4", "cores = 2")
         with Sandbox(profile=bad_avd) as sb:
             with self.assertRaises(Refused) as cm:
