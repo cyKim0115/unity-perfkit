@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "perfkit/run-meta@1",
+  "title": "기기 회차 메타(meta.json)",
+  "description": "L3 회차 하나의 조건. device_class=emulator면 emu·host·valid가 필수이고 실기기 전용 칸(열·배터리·고정 성능·게임 모드)은 비워야 한다. device_class=device이면 실기기 전용 칸이 있어야 한다(모르면 null).",
+  "type": "object",
+  "required": [
+    "schema", "run_id", "build_hash", "apk_sha", "version", "build_config", "scenario", "save",
+    "arm", "round", "started_at", "device_class", "device_profile", "serial", "os_build", "probe_hash",
+    "manifest_version", "manifest_sha"
+  ],
+  "properties": {
+    "schema": {"const": "perfkit/run-meta@1"},
+    "run_id": {
+      "type": "string",
+      "description": "<YYYYMMDD-HHMM>-<빌드해시8>-<시나리오>-<회차>. 결과 폴더 runs/<run_id>/ 이름과 같다.",
+      "pattern": "^[0-9]{8}-[0-9]{4}-[0-9A-Za-z]{8}-[a-z0-9][a-z0-9-]*-[0-9]+$"
+    },
+    "build_hash": {"type": "string", "minLength": 7},
+    "apk_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "version": {"type": "string", "minLength": 1},
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{7,40}$"},
+    "build_config": {
+      "type": "object",
+      "required": ["variant", "probe", "frame_timing_stats"],
+      "properties": {
+        "variant": {"enum": ["release", "development"], "description": "수치 회차는 release(+게임 쪽 측정 모드), 진단 회차는 development"},
+        "probe": {"type": "boolean", "description": "게임 쪽 측정 모드 켬"},
+        "frame_timing_stats": {"type": "boolean"},
+        "managed_code_variant": {"enum": ["Release", "Instrumented", "Checked", "Debug", null]},
+        "script_debugging": {"type": ["boolean", "null"]},
+        "label": {"type": "string"}
+      },
+      "additionalProperties": true
+    },
+    "run_kind": {"enum": ["numeric", "diagnostic", "aa", "smoke"], "description": "numeric=수치, diagnostic=진단(개발 빌드), aa=같은 APK 잡음 바닥, smoke=완주 확인"},
+    "compat_mode": {"type": "boolean", "description": "측정 모드가 없는 옛 기준(호환 모드)"},
+    "scenario": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+    "seed": {"type": ["integer", "null"]},
+    "save": {"type": "string", "minLength": 1, "description": "light·heavy 또는 세이브 스냅샷 이름"},
+    "arm": {"enum": ["A", "B", null], "description": "ABAB의 팔. 단독·A/A 회차는 null 또는 A"},
+    "round": {"type": "integer", "minimum": 1},
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "device_class": {"enum": ["device", "emulator"], "description": "device → L3-D, emulator → L3-E. 등급이 다르면 비교하지 않는다"},
+    "device_profile": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]*$", "description": "프로젝트 프로필 [devices.<이름>]의 이름"},
+    "profile_name": {"type": "string"},
+    "profile_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "serial": {"type": "string", "minLength": 1},
+    "os_build": {"type": "string", "minLength": 1},
+    "thermal_start": {"type": ["integer", "null"], "minimum": 0, "description": "시작 때 열 상태 단계(실기기만)"},
+    "ap_c_start": {"type": ["number", "null"], "description": "시작 AP 온도 °C(실기기만)"},
+    "batt_c_start": {"type": ["number", "null"], "description": "시작 배터리 온도 °C(실기기만)"},
+    "batt_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "charging": {"type": ["boolean", "null"]},
+    "fixed_perf": {"type": ["boolean", "null"], "description": "고정 성능 모드(실기기만)"},
+    "game_mode": {"type": ["string", "null"], "description": "게임 모드 상태(실기기만)"},
+    "brightness": {"type": ["number", "null"]},
+    "probe_hash": {"type": "string", "minLength": 1, "description": "측정 코드·시나리오 해시"},
+    "manifest_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "manifest_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "emu": {"$ref": "#/$defs/emu"},
+    "host": {"$ref": "#/$defs/host"},
+    "valid": {"type": "boolean", "description": "관문(에뮬레이터 = 호스트 유휴, 실기기 = 식힘) 통과 여부"},
+    "invalid_reason": {"type": "string"},
+    "tool": {
+      "type": "object",
+      "properties": {"perfkit_version": {"type": "string"}},
+      "additionalProperties": true
+    },
+    "notes": {"type": "string"}
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {"properties": {"device_class": {"const": "emulator"}}, "required": ["device_class"]},
+      "then": {
+        "required": ["emu", "host", "valid"],
+        "properties": {
+          "thermal_start": {"type": "null"},
+          "ap_c_start": {"type": "null"},
+          "batt_c_start": {"type": "null"},
+          "batt_pct": {"type": "null"},
+          "charging": {"type": "null"},
+          "fixed_perf": {"type": "null"},
+          "game_mode": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"device_class": {"const": "device"}}, "required": ["device_class"]},
+      "then": {
+        "required": ["thermal_start", "ap_c_start", "batt_c_start", "batt_pct", "charging", "fixed_perf", "game_mode"],
+        "not": {"anyOf": [{"required": ["emu"]}]}
+      }
+    },
+    {
+      "if": {"properties": {"valid": {"const": false}}, "required": ["valid"]},
+      "then": {"required": ["invalid_reason"]}
+    }
+  ],
+  "$defs": {
+    "emu": {
+      "type": "object",
+      "description": "AVD 설정. 하나라도 비면 거부한다.",
+      "required": ["avd", "system_image", "cores", "ram_mb", "gpu_mode", "resolution", "emulator_version", "arm_translation"],
+      "properties": {
+        "avd": {"type": "string", "minLength": 1},
+        "system_image": {"type": "string", "minLength": 1},
+        "cores": {"type": "integer", "minimum": 1},
+        "ram_mb": {"type": "integer", "minimum": 1},
+        "gpu_mode": {"type": "string", "minLength": 1},
+        "resolution": {"type": "string", "pattern": "^[0-9]+x[0-9]+$"},
+        "emulator_version": {"type": "string", "minLength": 1},
+        "arm_translation": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "host": {
+      "type": "object",
+      "description": "호스트 PC. cpu_busy_*는 측정 전·중 호스트 CPU 사용률(%).",
+      "required": ["cpu", "os", "gpu", "cpu_busy_before", "cpu_busy_during"],
+      "properties": {
+        "name": {"type": "string"},
+        "cpu": {"type": "string", "minLength": 1},
+        "os": {"type": "string", "minLength": 1},
+        "gpu": {"type": "string", "minLength": 1},
+        "cpu_busy_before": {"type": "number", "minimum": 0, "maximum": 100},
+        "cpu_busy_during": {"type": "number", "minimum": 0, "maximum": 100},
+        "idle_gate_threshold": {"type": "number", "minimum": 0, "maximum": 100}
+      },
+      "additionalProperties": true
+    }
+  }
+}

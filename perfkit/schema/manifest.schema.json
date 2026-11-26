@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "perfkit/manifest@1",
+  "title": "점검 항목 매니페스트(manifest/checks.json)",
+  "description": "모양만 검사한다. 항목 수·영역별 수·세트 수·등급 규칙 같은 의미 검사는 perfkit/manifest.py가 한다.",
+  "type": "object",
+  "required": ["schema", "manifest_version", "title", "areas", "layers", "device_classes", "emulator_forbidden_tags", "sources", "checks", "aux"],
+  "properties": {
+    "schema": {"const": "perfkit/manifest@1"},
+    "manifest_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "title": {"type": "string"},
+    "origin": {"type": "object", "additionalProperties": {"type": "string"}},
+    "areas": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "count"],
+        "properties": {"name": {"type": "string"}, "count": {"type": "integer", "minimum": 0}},
+        "additionalProperties": false
+      }
+    },
+    "layers": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/layer"},
+      "additionalProperties": {"type": "string"}
+    },
+    "device_classes": {
+      "type": "object",
+      "additionalProperties": {"enum": ["L3-E", "L3-D"]}
+    },
+    "emulator_forbidden_tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "noise_rules": {"type": "object", "additionalProperties": true},
+    "sources": {"type": "object", "additionalProperties": {"type": "string"}},
+    "checks": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+    "aux": {"type": "array", "items": {"$ref": "#/$defs/item"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "layer": {"enum": ["L0", "L1", "L2", "L3-E", "L3-D", "console"]},
+    "noise": {
+      "enum": ["none", "low", "medium", "high", "very_high", "unknown", "pending_aa", "n/a"],
+      "description": "none 결정적 · low · medium · high · very_high · unknown(근거 없음, high처럼 다룸) · pending_aa(A/A 잡음 바닥 대기, 판단 보류) · n/a(기록 항목)"
+    },
+    "judge": {
+      "enum": ["absolute+change", "change_only", "absolute_only", "record"],
+      "description": "absolute+change 절대 기준과 변화 · change_only 기준 대비 변화만 · absolute_only 절대 기준만 · record 기록만(판정 안 함)"
+    },
+    "basis": {"enum": ["공식", "제안", "프로젝트가 정함", "없음"]},
+    "better": {"enum": ["lower", "higher", "none"]},
+    "kind": {
+      "enum": ["count", "amount", "time", "ratio", "bool", "snapshot"],
+      "description": "count 개수(결정적이면 +1건도 변화) · amount 크기·바이트 · time 시간 · ratio 비율 · bool 참거짓 · snapshot 설정 묶음(바뀌면 확인 필요)"
+    },
+    "collector": {"type": "string", "pattern": "^(static|build|editor|device|run|console)\\.[a-z][a-z0-9_]*$"},
+    "layer_spec": {
+      "type": "object",
+      "required": ["noise", "judge", "collector"],
+      "properties": {
+        "noise": {"$ref": "#/$defs/noise"},
+        "judge": {"$ref": "#/$defs/judge"},
+        "collector": {"$ref": "#/$defs/collector"},
+        "build_config": {"enum": ["release", "development", "any"]},
+        "noise_hint": {"type": "string"},
+        "note": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "metric": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "key": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "unit": {"type": "string"},
+        "better": {"$ref": "#/$defs/better"},
+        "kind": {"$ref": "#/$defs/kind"},
+        "zero_is_hard": {"type": "boolean", "description": "기준 0에서 0이 아니게 되면 실패(예: 평상시 GC 0B/frame)"},
+        "increase_is_fail": {"type": "boolean", "description": "결정적 개수의 증가를 실패로(예: 새 Major 이슈)"},
+        "note": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "rule": {
+      "type": "object",
+      "required": ["metric", "op", "basis"],
+      "properties": {
+        "metric": {"type": "string"},
+        "op": {"enum": ["gt", "ge", "lt", "le", "eq", "ne"], "description": "나쁜 쪽 비교. gt 11이면 11 초과가 나쁨"},
+        "warn": {},
+        "fail": {},
+        "warn_by_ram_class": {"type": "object", "additionalProperties": {"type": "number"}},
+        "fail_by_ram_class": {"type": "object", "additionalProperties": {"type": "number"}},
+        "basis": {"$ref": "#/$defs/basis"},
+        "sources": {"type": "array", "items": {"type": "string"}},
+        "layers": {"type": "array", "items": {"$ref": "#/$defs/layer"}},
+        "note": {"type": "string"}
+      },
+      "anyOf": [
+        {"required": ["warn"]}, {"required": ["fail"]},
+        {"required": ["warn_by_ram_class"]}, {"required": ["fail_by_ram_class"]}
+      ],
+      "additionalProperties": false
+    },
+    "item": {
+      "type": "object",
+      "required": [
+        "id", "area", "title", "unit", "kind", "better", "layers", "by_layer", "set", "deep_variant",
+        "set_basis", "fix_risk", "fix_risk_text", "auto", "criteria", "tags", "source_text"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^(FRM|CPU|SCR|GPU|MEM|AST|BLD|THM|STB|AUX)-[0-9]{2}$"},
+        "area": {"enum": ["FRM", "CPU", "SCR", "GPU", "MEM", "AST", "BLD", "THM", "STB", "AUX"]},
+        "title": {"type": "string", "minLength": 1},
+        "unit": {"type": "string"},
+        "kind": {"$ref": "#/$defs/kind"},
+        "better": {"$ref": "#/$defs/better"},
+        "metrics": {"type": "array", "items": {"$ref": "#/$defs/metric"}, "minItems": 1},
+        "layers": {"type": "array", "items": {"$ref": "#/$defs/layer"}, "minItems": 1, "uniqueItems": true},
+        "by_layer": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"$ref": "#/$defs/layer"},
+          "additionalProperties": {"$ref": "#/$defs/layer_spec"}
+        },
+        "set": {"enum": ["basic", "deep"]},
+        "deep_variant": {"type": "boolean"},
+        "set_basis": {"type": "string", "minLength": 1},
+        "fix_risk": {"enum": ["safe", "review", "human", "none"]},
+        "fix_risk_text": {"type": "string"},
+        "auto": {"enum": ["auto", "partial", "manual"]},
+        "criteria": {
+          "type": "object",
+          "required": ["text", "basis", "sources", "absolute"],
+          "properties": {
+            "text": {"type": "string"},
+            "basis": {"type": "array", "items": {"$ref": "#/$defs/basis"}, "minItems": 1, "uniqueItems": true},
+            "sources": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+            "absolute": {"type": "array", "items": {"$ref": "#/$defs/rule"}}
+          },
+          "additionalProperties": false
+        },
+        "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "source_text": {
+          "type": "object",
+          "required": ["location", "auto", "noise", "fix"],
+          "properties": {
+            "location": {"type": "string"}, "auto": {"type": "string"},
+            "noise": {"type": "string"}, "fix": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "note": {"type": "string"},
+        "project_note": {"type": "string", "description": "프로젝트 프로필이 붙인 메모(공개 매니페스트에는 없음)"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

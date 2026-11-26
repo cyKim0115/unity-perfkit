@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "perfkit/result@1",
+  "title": "수집 결과(한 층·한 회차 또는 한 점검)",
+  "description": "항목 ID마다 값(status=ok + values) 또는 「수집 못 함 + 이유」(status=not_collected + reason). L3 층이면 device_class와 run_id가 필수이고, L3-E는 emulator, L3-D는 device여야 한다.",
+  "type": "object",
+  "required": ["schema", "layer", "manifest_version", "manifest_sha", "collected_at", "source", "items"],
+  "properties": {
+    "schema": {"const": "perfkit/result@1"},
+    "layer": {"$ref": "#/$defs/layer"},
+    "device_class": {"enum": ["device", "emulator"]},
+    "run_id": {"type": "string", "minLength": 1},
+    "manifest_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "manifest_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile_name": {"type": "string", "description": "프로젝트 프로필 이름(덮어쓰기를 적용했으면)"},
+    "profile_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "source": {
+      "type": "object",
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": {"enum": ["static", "build", "editor", "run", "console"]},
+        "ref": {"type": "string", "minLength": 1, "description": "원자료 경로나 식별자"},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{7,40}$"},
+        "build_hash": {"type": "string"},
+        "apk_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": true
+    },
+    "tool": {"type": "object", "additionalProperties": true},
+    "items": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^(FRM|CPU|SCR|GPU|MEM|AST|BLD|THM|STB|AUX)-[0-9]{2}$"},
+      "additionalProperties": {"$ref": "#/$defs/item"}
+    }
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {"properties": {"layer": {"enum": ["L3-E", "L3-D"]}}, "required": ["layer"]},
+      "then": {"required": ["device_class", "run_id"]}
+    },
+    {
+      "if": {"properties": {"layer": {"const": "L3-E"}}, "required": ["layer"]},
+      "then": {"properties": {"device_class": {"const": "emulator"}}}
+    },
+    {
+      "if": {"properties": {"layer": {"const": "L3-D"}}, "required": ["layer"]},
+      "then": {"properties": {"device_class": {"not": {"const": "emulator"}}}}
+    }
+  ],
+  "$defs": {
+    "layer": {"enum": ["L0", "L1", "L2", "L3-E", "L3-D", "console"]},
+    "metric_value": {"type": ["number", "boolean", "string", "object", "array", "null"]},
+    "item": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["status", "values"],
+          "properties": {
+            "status": {"const": "ok"},
+            "values": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/metric_value"}},
+            "runs": {
+              "type": "array",
+              "description": "회차별 값(같은 층 여러 회차를 한 결과에 묶을 때)",
+              "items": {"type": "object", "additionalProperties": {"$ref": "#/$defs/metric_value"}}
+            },
+            "unit": {"type": "string"},
+            "collector": {"type": "string", "pattern": "^(static|build|editor|device|run|console)\\.[a-z][a-z0-9_]*$"},
+            "samples": {"type": "integer", "minimum": 0},
+            "note": {"type": "string"}
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["status", "reason"],
+          "properties": {
+            "status": {"const": "not_collected"},
+            "reason": {"type": "string", "minLength": 1},
+            "collector": {"type": "string"}
+          },
+          "additionalProperties": true
+        },
+        {
+          "type": "object",
+          "required": ["status", "reason"],
+          "properties": {
+            "status": {"const": "not_applicable"},
+            "reason": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": true
+        }
+      ]
+    }
+  }
+}

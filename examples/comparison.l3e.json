@@ -1,0 +1,66 @@
+{
+  "schema": "perfkit/comparison@1",
+  "layer": "L3-E",
+  "device_class": "emulator",
+  "manifest_version": "1.0.0",
+  "manifest_sha": "0000000000000000000000000000000000000000000000000000000000000000",
+  "created_at": "2026-01-01T13:00:00+00:00",
+  "method": "range",
+  "base": {
+    "label": "base",
+    "commit": "0123abcd0",
+    "run_ids": [
+      "r1",
+      "r2",
+      "r3"
+    ]
+  },
+  "cand": {
+    "label": "candidate",
+    "commit": "4567cdef0",
+    "run_ids": [
+      "r4",
+      "r5",
+      "r6"
+    ]
+  },
+  "items": {
+    "MEM-04": {
+      "outcome": "improved",
+      "needs_device_confirm": true,
+      "reasons": [
+        "실기기 확인 대기"
+      ],
+      "metrics": {
+        "total_reserved_mb": {
+          "base": [
+            800.0,
+            803.0,
+            801.0
+          ],
+          "cand": [
+            750.0,
+            751.0,
+            749.0
+          ],
+          "base_range": [
+            800.0,
+            803.0
+          ],
+          "delta": -51.0,
+          "delta_pct": -6.37,
+          "noise": "low",
+          "outcome": "improved",
+          "reasons": [
+            "예시 값"
+          ]
+        }
+      }
+    }
+  },
+  "summary": {
+    "counts": {
+      "improved": 1
+    }
+  }
+}

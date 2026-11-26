@@ -1,0 +1,46 @@
+{
+  "schema": "perfkit/result@1",
+  "layer": "L3-E",
+  "device_class": "emulator",
+  "run_id": "20260101-1210-0123abcd-scenario-a-1",
+  "manifest_version": "1.0.0",
+  "manifest_sha": "0000000000000000000000000000000000000000000000000000000000000000",
+  "collected_at": "2026-01-01T12:30:00+00:00",
+  "source": {
+    "kind": "run",
+    "ref": "runs/20260101-1210-0123abcd-scenario-a-1",
+    "commit": "0123abcd0"
+  },
+  "items": {
+    "FRM-01": {
+      "status": "ok",
+      "values": {
+        "p50": 38.0,
+        "p95": 52.0,
+        "p99": 61.0
+      },
+      "unit": "ms",
+      "collector": "device.frame_timing"
+    },
+    "MEM-04": {
+      "status": "ok",
+      "values": {
+        "total_reserved_mb": 800.0,
+        "total_used_mb": 650.0
+      },
+      "collector": "device.unity_memory"
+    },
+    "AUX-01": {
+      "status": "ok",
+      "values": {
+        "proc_cpu_pct_avg": 140.0
+      },
+      "collector": "device.proc_cpu"
+    },
+    "STB-08": {
+      "status": "not_collected",
+      "reason": "logcat 버퍼가 회차 중 넘침(예시)",
+      "collector": "device.logcat"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schema": "perfkit/run-meta@1",
+  "build_hash": "0123abcd",
+  "apk_sha": "1111111111111111111111111111111111111111111111111111111111111111",
+  "version": "1.0.0",
+  "commit": "0123abcd0",
+  "build_config": {
+    "variant": "release",
+    "probe": true,
+    "frame_timing_stats": true,
+    "label": "perf"
+  },
+  "run_kind": "numeric",
+  "scenario": "scenario-a",
+  "seed": 1,
+  "save": "light",
+  "arm": "A",
+  "round": 1,
+  "started_at": "2026-01-01T12:00:00+00:00",
+  "probe_hash": "pppppppppppp",
+  "manifest_version": "1.0.0",
+  "manifest_sha": "0000000000000000000000000000000000000000000000000000000000000000",
+  "brightness": null,
+  "tool": {
+    "perfkit_version": "0.1.0"
+  },
+  "run_id": "20260101-1210-0123abcd-scenario-a-1",
+  "device_class": "emulator",
+  "device_profile": "emulator",
+  "serial": "emulator-5554",
+  "os_build": "<os build>",
+  "emu": {
+    "avd": "<avd>",
+    "system_image": "system-images;android-35;google_apis;x86_64",
+    "cores": 4,
+    "ram_mb": 4096,
+    "gpu_mode": "host",
+    "resolution": "1080x2400",
+    "emulator_version": "<version>",
+    "arm_translation": true
+  },
+  "host": {
+    "cpu": "<host cpu>",
+    "os": "<host os>",
+    "gpu": "<host gpu>",
+    "cpu_busy_before": 3.0,
+    "cpu_busy_during": 25.0
+  },
+  "valid": true
+}

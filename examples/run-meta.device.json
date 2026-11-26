@@ -1,0 +1,40 @@
+{
+  "schema": "perfkit/run-meta@1",
+  "build_hash": "0123abcd",
+  "apk_sha": "1111111111111111111111111111111111111111111111111111111111111111",
+  "version": "1.0.0",
+  "commit": "0123abcd0",
+  "build_config": {
+    "variant": "release",
+    "probe": true,
+    "frame_timing_stats": true,
+    "label": "perf"
+  },
+  "run_kind": "numeric",
+  "scenario": "scenario-a",
+  "seed": 1,
+  "save": "light",
+  "arm": "A",
+  "round": 1,
+  "started_at": "2026-01-01T12:00:00+00:00",
+  "probe_hash": "pppppppppppp",
+  "manifest_version": "1.0.0",
+  "manifest_sha": "0000000000000000000000000000000000000000000000000000000000000000",
+  "brightness": null,
+  "tool": {
+    "perfkit_version": "0.1.0"
+  },
+  "run_id": "20260101-1200-0123abcd-scenario-a-1",
+  "device_class": "device",
+  "device_profile": "phone-a",
+  "serial": "<serial>",
+  "os_build": "<os build>",
+  "thermal_start": 0,
+  "ap_c_start": 37.5,
+  "batt_c_start": 33.0,
+  "batt_pct": 80,
+  "charging": false,
+  "fixed_perf": null,
+  "game_mode": null,
+  "valid": true
+}

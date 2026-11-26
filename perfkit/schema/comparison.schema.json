@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "perfkit/comparison@1",
+  "title": "기준 대비 비교 결과",
+  "description": "한 층·한 등급 안에서 기준(base)과 후보(cand)를 비교한 결과. 등급이 다른 회차는 섞지 않는다(L3-E는 emulator만, L3-D는 device만). 항목·지표마다 변화·구간·판정을 남긴다.",
+  "type": "object",
+  "required": ["schema", "layer", "manifest_version", "manifest_sha", "created_at", "method", "base", "cand", "items", "summary"],
+  "properties": {
+    "schema": {"const": "perfkit/comparison@1"},
+    "layer": {"enum": ["L0", "L1", "L2", "L3-E", "L3-D", "console"]},
+    "device_class": {"enum": ["device", "emulator"]},
+    "manifest_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "manifest_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile_name": {"type": "string", "description": "프로젝트 프로필 이름(덮어쓰기를 적용했으면)"},
+    "profile_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "method": {
+      "enum": ["diff", "range", "abab", "same_day"],
+      "description": "diff=결정적 L0·L1, range=기준선 회차 최소~최대 범위 규칙, abab=교차 회차 통계, same_day=L2 같은 날 재측정"
+    },
+    "stat": {"type": "object", "description": "abab 통계 판정기 이름·파라미터", "additionalProperties": true},
+    "base": {"$ref": "#/$defs/side"},
+    "cand": {"$ref": "#/$defs/side"},
+    "items": {
+      "type": "object",
+      "propertyNames": {"pattern": "^(FRM|CPU|SCR|GPU|MEM|AST|BLD|THM|STB|AUX)-[0-9]{2}$"},
+      "additionalProperties": {"$ref": "#/$defs/item"}
+    },
+    "summary": {
+      "type": "object",
+      "required": ["counts"],
+      "properties": {
+        "counts": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/outcome"},
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {"properties": {"layer": {"enum": ["L3-E", "L3-D"]}}, "required": ["layer"]},
+      "then": {"required": ["device_class"]}
+    },
+    {
+      "if": {"properties": {"layer": {"const": "L3-E"}}, "required": ["layer"]},
+      "then": {"properties": {"device_class": {"const": "emulator"}}}
+    },
+    {
+      "if": {"properties": {"layer": {"const": "L3-D"}}, "required": ["layer"]},
+      "then": {"properties": {"device_class": {"not": {"const": "emulator"}}}}
+    }
+  ],
+  "$defs": {
+    "outcome": {
+      "enum": ["pass", "improved", "warn", "fail", "review", "pending", "record", "not_collected"],
+      "description": "pass 통과(변화 없음) · improved 개선 · warn 경고 · fail 실패 · review 확인 필요 · pending 판단 보류 · record 기록만 · not_collected 수집 못 함"
+    },
+    "side": {
+      "type": "object",
+      "required": ["label", "run_ids"],
+      "properties": {
+        "label": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{7,40}$"},
+        "build_hash": {"type": "string"},
+        "apk_sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "run_ids": {"type": "array", "items": {"type": "string"}},
+        "result_refs": {"type": "array", "items": {"type": "string"}},
+        "compat_mode": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "number_or_null": {"type": ["number", "null"]},
+    "metric": {
+      "type": "object",
+      "required": ["outcome"],
+      "properties": {
+        "base": {"description": "기준 값 또는 회차별 값 목록"},
+        "cand": {"description": "후보 값 또는 회차별 값 목록"},
+        "base_range": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/number_or_null"}},
+        "delta": {"$ref": "#/$defs/number_or_null"},
+        "delta_pct": {"$ref": "#/$defs/number_or_null"},
+        "interval": {
+          "type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/number_or_null"},
+          "description": "변화의 신뢰 구간(abab 통계가 채움)"
+        },
+        "noise": {"type": "string"},
+        "outcome": {"$ref": "#/$defs/outcome"},
+        "reasons": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "item": {
+      "type": "object",
+      "required": ["outcome"],
+      "properties": {
+        "outcome": {"$ref": "#/$defs/outcome"},
+        "metrics": {"type": "object", "additionalProperties": {"$ref": "#/$defs/metric"}},
+        "absolute": {
+          "type": "object",
+          "properties": {
+            "outcome": {"$ref": "#/$defs/outcome"},
+            "rules": {"type": "array"}
+          },
+          "additionalProperties": true
+        },
+        "needs_device_confirm": {"type": "boolean", "description": "에뮬레이터에서 개선 판정 → 「실기기 확인 대기」"},
+        "reasons": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
+  }
+}
