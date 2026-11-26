@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+# 측정 원자료·사용자 설정·프로젝트 프로필은 저장소 밖에 둔다.
+config/*.local.toml
+runs/
+*.raw
+*.apk
+*.aab
