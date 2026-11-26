@@ -62,12 +62,15 @@ perfkit/
   compare/          기준 대비 비교·통계 판정(compare), 기준선(baseline), A/A 잡음 바닥(noise)
   report/           비교·점검 결과 HTML(report), 기본 테마 default.css
   index/            회차·비교 색인(index): runs.jsonl·comparisons.jsonl·runs.sqlite
+  device/           L3 기기 준비·점검(device 명령): adb·logcat 이어 받기, 기기 설정 합치기, 호스트 유휴 관문, proc·sysfs 샘플러, AVD 대조, 임대 도구 감싸기
+  run/              L3 회차 실행·수집(run 명령): 설치·세이브 주입·실행·끝 신호·수집, 반복·ABAB, 콜드 시작, 측정 모드 로그·CSV 파서, 지표 계산
 manifest/
   checks.json       123항목 + 보조 지표 AUX-01~04
   CHANGES.md        기준값 변경 기록
 config/
   config.example.toml    사용자 설정 예시
   profile.example.toml   프로젝트 프로필 예시
+  devices/               기기 preset(emulator·android-device·exynos-mali·qualcomm-adreno): SoC별 sysfs 경로·식힘·prep 기본값
 examples/           스키마 예시(회차 메타 실기기·에뮬레이터, 결과, 비교). 값은 예시
 tests/              python -m unittest
 ```
@@ -89,6 +92,7 @@ python -m perfkit schema list
 python -m perfkit schema validate <파일...> [--kind run-meta|result|comparison|manifest] [--manifest]
 python -m perfkit verdict judge --id BLD-01 --layer L1 --metric apk_mb --base 100 --cand 106
 python -m perfkit static | build | diff             L0·L1 점검과 비교(아래 절)
+python -m perfkit device | run                    L3 기기 회차(아래 절)
 python -m perfkit compare | baseline | noise | report | index   기준 대비 비교·판정·보고(아래 절)
 python -m unittest discover -s tests -t .
 ```
@@ -151,6 +155,139 @@ short_clip_seconds = 2.0
 | buildlayout.json | MEM-09 중복 의존(건수·MB), MEM-11 텍스처, MEM-12 메시, MEM-14 애니메이션, MEM-17 폰트 아틀라스, BLD-02 번들·상위 자산 |
 
 GPU-13(Mali Offline Compiler)은 아직 연결하지 않았다.
+
+### 에디터 점검 결과 합치기(`--editor`)
+
+에디터가 있어야 아는 값(Project Auditor 진단, AssetDatabase 질의, 프리팹·모델 내용, Addressables Analyze)은 Unity 쪽 도구가 `perfkit/editor-audit@1` JSON(`audit.json`)으로 쓰고 perfkit이 합친다.
+
+```
+python -m perfkit static --project <폴더> --editor <audit.json> [--out <source.json>]
+python -m perfkit build --apk <APK> ... --editor <audit.json>     # L1 몫(extra.l1, 예: GPU-15 keywords)
+```
+
+`audit.json` 모양: `schema`, `layer: "L0"`, `tool`, `source`(`kind: editor`, `commit`, `scope`), `items`, `auditor`(진단 요약), `extra`(`samples`, `build_report`, `l1`), `errors`. 항목의 `merge`가 합치는 법이다.
+
+| merge | 뜻 |
+|---|---|
+| `replace`(기본) | 에디터 항목으로 바꾼다(정적 점검이 「수집 못 함」이던 항목) |
+| `values` | 값에 에디터 값을 덮고(둘 다 dict면 얕게 합침) `resolves`에 적힌 `editor_needed`를 지운다. `violations`는 합집합 |
+| `detail` | 값은 그대로, `detail.editor`에 내역만 붙인다(예: Auditor 코드 진단 수) |
+
+합친 항목에는 `merged_from: "editor"`, 결과 `tool.editor`에 에디터 도구·커밋·범위·Auditor 요약이 남는다. 에디터 결과의 커밋이나 범위가 정적 점검과 다르면 `tool.warnings`에 적는다.
+
+## 기기 회차: device·run (L3)
+
+기기에서 고정 시나리오를 돌려 지표를 모은다. 등급은 두 가지다: 에뮬레이터(`kind = "emulator"` → L3-E)와 실기기(`kind = "device"` → L3-D). 판정은 하지 않고 회차 폴더만 만든다(판정은 `compare`).
+
+```
+python -m perfkit device list                         설정의 기기와 adb에 보이는 기기
+python -m perfkit device doctor --device <이름>        adb·기기·AVD·임대 도구·sysfs·호스트 측정 확인
+python -m perfkit device avd --device <이름>           AVD 설정을 기대값(expect)과 대조(다르면 종료 코드 5)
+python -m perfkit device host-gate [--seconds 10]     호스트 유휴 관문을 지금 재 봄
+python -m perfkit device prep --device <이름>          실기기 고정(비행기 모드·밝기·화면 켜짐·게임 모드·고정 성능)
+python -m perfkit device restore --device <이름>       prep 전 값으로 되돌리고 같은지 확인
+python -m perfkit device wait-cool --device <이름> [--max-ap 38 --max-skin 35.5 --status 0]
+python -m perfkit run --device <이름> --apk <APK> --scenario <이름> [--seconds 60] [--save light] [--rounds N] [--kind aa]
+python -m perfkit run abab --device <이름> --a <기준 APK> --b <후보 APK> --rounds N [--order-seed 1]
+python -m perfkit run cold-start --device <이름> --apk <APK> [--count 10]
+```
+
+### 회차 하나의 순서
+
+1. 거부 조건: 호스트에서 배치 빌드가 돌면(`[host] busy`: 명령줄에 `-batchmode`와 `-executeMethod`·`-buildTarget`이 있는 Unity, 임포트 워커는 제외) 종료 코드 4. 남의 에뮬레이터 임대도 4. AVD 설정이 기대값과 다르면 5(`avd_mismatch = "warn"`이면 진행하고 회차 무효).
+2. `am force-stop` → `install -r` → 세이브 주입(`<saves_dir>/<save>/*` → `<files>/perf/saves/<save>/`).
+3. logcat 버퍼 키우기(`logcat -G`, 끝나면 되돌림) → `logcat -c` → (실기기) SurfaceFlinger timestats 켬.
+4. 측정 전 호스트 유휴 측정(`[host] idle_seconds`) → logcat 이어 받기 시작(`-v epoch`, 끊기면 마지막 시각부터 `-T`로 다시 붙고 같은 줄은 버림).
+5. `am start -W -n <pkg>/<activity> -e unity '<인자>'`(콜드 시작 TotalTime) → 샘플러(기본 5초: proc 공통, 실기기는 sysfs·열·배터리).
+6. 끝 신호: logcat `[PerfRun] END` · 기기의 회차 CSV가 생겨 크기가 그대로(`csv_stable_s`) · 앱 종료(실패) · 시간 초과. 측정 모드 BEGIN이 `probe_wait_s` 안에 없으면 **호환 모드**: 실행 뒤 `seconds`초 동안 기기 밖 지표(proc·meminfo·시작 시간)만 잰다.
+7. 구간 밖 `dumpsys meminfo`(게임이 END 뒤 닫히지 않게 `-perfQuit 0`을 넘기고 perfkit이 닫는다) → force-stop → CSV 받기 → 기기의 회차 CSV·넣은 세이브 지우기.
+8. 회차 폴더를 쓰고 스키마로 검사한다(어긋나면 종료 코드 6).
+
+게임 실행 인자: `-perfScenario <이름> -perfSeconds <초> -perfSeed <n> -perfSave <이름> -perfRunId <run_id> -perfQuit 0 [-perfFreeze 0|1] [<[run] extra_args>]`. 게임이 찍는 줄 형식은 `perfkit/run/probe.py` 머리말.
+
+### 회차 폴더
+
+`<결과>/runs/<run_id>/`, `run_id = <YYYYMMDD-HHMM>-<빌드 8자>-<시나리오>-<n>`(빌드 8자 = 빌드 정보 `sha` → 커밋 앞 8 → APK sha256 앞 8).
+
+| 파일 | 내용 |
+|---|---|
+| `meta.json` | run-meta 스키마. `session`·`arm`·`round`(쌍 짓기), `run_kind`, `compat_mode`, `probe_hash`·`quality_hash`, `emu`(에뮬레이터)·`host`(`cpu_busy_before`·`cpu_busy_during`·`other_unity_pct`·`emulator_pct`) 또는 열·배터리 시작값(실기기), `logcat_restarts`, `end_signal`, `valid`·`invalid_reason` |
+| `result.json` | result 스키마(층 L3-E·L3-D, 매니페스트 지표 키). 못 잰 항목은 `not_collected` + 이유 |
+| `logcat.txt` | logcat 전체(재연결 표시 `##PERFKIT_LOGCAT_RESTART`) |
+| `frames.csv` | 게임이 쓴 프레임 CSV |
+| `device_samples.csv` | 샘플(시각·단계·프로세스·스레드 묶음 점유율·시스템 CPU·loadavg·RSS·Anon·Swap·스레드 수, 실기기: CPU·GPU 클럭·사용률·상한·열·배터리) |
+| `meminfo.txt`, `am_start.txt`, `timestats.txt`, `run.log` | 원자료·진행 기록 |
+
+여러 회차의 실행 기록은 `<결과>/sessions/<session>.json`(라운드별 A·B 순서, 회차, 관문 결과, 임대). 콜드 시작 반복은 `<결과>/startup/<시각>-<기기>-cold.json`.
+
+### 지표(측정 단계만)
+
+| 항목 | 원자료 → 지표 |
+|---|---|
+| FRM-01·02 | 프레임 CSV FrameTiming main·render ms → p50·p95(·p99) |
+| FRM-03 | dtMs → fps_avg(프레임 수/실제 시간), 16.7·33.3·50 ms 넘는 비율, 히치 수(dt > max(50 ms, 3×중앙값)) |
+| GPU-01(L3-D) | gpuMs → p50·p95 |
+| CPU-02 | gcAllocB(개발 빌드) 없으면 monoAllocB(릴리스 대체, 하한값) 프레임 평균 |
+| CPU-03·04, MEM-04·05 | `[PerfStats]` gcCount·gcResMB·monoMB·totalMB·sysMB |
+| CPU-15 | EVENT ui_open nextFrameMs 최대(처음 열기·다시 열기 따로 detail), 씬 로드 구간(`[run] scene_load_phases`) |
+| GPU-03·04·07 | near·far 단계 평균 Draw Calls·Batches(카운터가 있을 때만)·SetPass·정점·삼각형 |
+| MEM-01 | /proc status RssAnon+VmSwap 최고·P90 |
+| MEM-03 | 구간 밖 meminfo PSS·Private Dirty·Native·EGL/GL mtrack·Gfx dev·Unknown·Code |
+| BLD-10 | `am start -W` TotalTime(콜드) |
+| BLD-11·STB-11·AUX-04 | `load_*` 단계 t: 마지막 로드 단계 = TTFD, 이웃 단계 차 = 로드 구간 |
+| STB-08·09 | 앱 pid logcat: 예외 수·서명(숫자·경로를 가린 클래스+메시지), `[클래스]` 경고·오류, AndroidRuntime, 네이티브 크래시, Choreographer 건너뜀, ANR, LMK |
+| AUX-01·02·03 | /proc 샘플: 프로세스 CPU %(1코어 = 100), 스레드 묶음(`thread_groups` 정규식), /proc/stat 사용률, loadavg |
+| THM-01·GPU-02(L3-D) | 열 상태·AP·배터리 온도 최고, GPU 클럭 평균·상한·(사용률×클럭/상한) p95 |
+
+### 관문
+
+- 에뮬레이터(L3-E): 측정 전 호스트 CPU ≤ `host_busy_before_max`, 수집 중(첫 측정 단계 ~ 끝 신호) ≤ `host_busy_during_max`, 다른 에디터 프로세스(`[host] editor_images`) 호스트 점유 ≤ `other_unity_pct_max`, logcat 재연결 ≤ `logcat_restarts_max`. 기본 15 · 25 · 1 · 0(%·회). 문턱 정본은 프로필 `[compare."L3-E".gate]`(compare가 같은 값으로 다시 본다). 호스트 CPU를 못 재는 OS면 「확인 못 함」 경고만.
+- 실기기(L3-D): 회차 전 `wait-cool`(열 상태·AP·SKIN 문턱, 화면이 꺼지거나 시간이 넘으면 종료 코드 3), 시작 열 상태 > `max_status`면 무효, logcat 재연결.
+- 공통: 시나리오가 끝까지 가지 않거나(`END result=fail`, 앱 종료, 시간 초과) 프레임 CSV를 못 받으면 무효.
+- 무효 회차도 폴더는 남는다(`valid=false` + 이유). 판정에서 빼는 것은 compare가 한다.
+
+### 반복·ABAB
+
+- `--rounds N`: 같은 APK를 N회(arm A, round 1..N, 같은 session). A/A 잡음 바닥이면 `--kind aa`.
+- `abab --a X --b Y --rounds N`: 라운드마다 A·B 순서를 `Random(order_seed×1000 + 라운드)`로 섞고(같은 명령이면 같은 순서) 회차마다 다시 설치·세이브를 다시 넣는다. `--a`와 `--b`가 같은 파일이면 `run_kind=aa`.
+- 회차 사이 실기기는 `wait-cool`, 에뮬레이터는 회차마다 호스트 유휴 측정.
+- 비교: `perfkit compare --runs session:<session> --split arm`.
+
+### 에뮬레이터 임대
+
+기기 설정 `lease = "emu-lab"`이면 실행 앞뒤로 임대 도구 CLI를 부른다(`start --json` → 회차마다 `renew` → `release`). `tools.emu_lab`에 CLI 경로(`.js`면 node, `.cmd`·`.ps1`도 됨). `--no-lease`(이미 떠 있는 기기), `--keep-lease`(끝나도 놓지 않음), `--headless`, `--owner`. 임대 도구 쪽은 고치지 않고 수집은 perfkit이 adb로 한다.
+
+### 설정
+
+- 사용자 설정 `[tools] adb`: 한 PC에서 adb를 하나로 고정한다. 버전이 다른 adb 둘(예: SDK adb와 엔진 내장 adb)이 섞이면 서버가 다시 떠 logcat이 끊긴다. Android 빌드와 회차를 겹치지 않는다.
+- 기기 정의(프로필 `[devices.<이름>]`, PC 고유 값은 사용자 설정 `[devices.<이름>]`): `kind`, `preset`(저장소 `config/devices/<이름>.json`), `serial`, `avd`, `lease`, `expect`(AVD 기대값: system_image·cores·ram_mb·gpu_mode·resolution·emulator_version·arm_translation), `avd_mismatch`, `sysfs`(cpu_freq 목록·gpu_clock·gpu_busy·gpu_max_clock·배율), `thermal.sensors`(ap·skin·bat 센서 이름), `cool`, `prep`, `thread_groups`, `timestats`, `gate`(문턱 덮기), `host`.
+- 회차 공통(프로필 `[run]`, 사용자 설정 `[run]`이 덮음):
+
+```toml
+[run]
+package = "com.example.game"           # 없으면 APK의 패키지 → app.package
+activity = "com.unity3d.player.UnityPlayerGameActivity"
+saves_dir = "saves"                    # 프로필 폴더 기준, <saves_dir>/<세이브 이름>/*
+build_info = "{apk_dir}/build.json"    # 빌드 정보 JSON(commit·sha·version·build) 템플릿: {apk_dir}·{apk_dir_name}·{apk_stem}
+seconds = 60
+seed = 1
+sample_interval_s = 5.0
+probe_wait_s = 120                     # BEGIN을 기다리는 시간(넘으면 호환 모드)
+load_timeout_s = 600                   # BEGIN 뒤 END까지 = seconds + 이 값
+csv_stable_s = 2.0
+logcat_buffer = "16M"
+extra_args = ""                        # 게임 실행 인자 덧붙이기
+scene_load_phases = ["load_scene_begin", "load_scene_end"]
+
+[host]
+idle_seconds = 10
+editor_images = ["Unity.exe"]          # 다른 에디터 점유를 볼 프로세스 이미지
+emulator_images = ["qemu-system-x86_64.exe"]
+busy_files = []                        # 있으면 시작하지 않을 잠금 파일(glob)
+```
+
+- 실기기 prep은 기기 소리·음량을 건드리지 않는다. restore는 처음 값으로 되돌린 뒤 다시 읽어 같은지 보고, 같으면 상태 파일(`<결과>/device-state/<기기>.prep.json`)을 지운다.
+- 시험: `tests/test_device.py`·`tests/test_run_offline.py`는 가짜 adb(`tests/fakeadb.py`)와 익명화한 표본(`tests/data/device/`)으로 돈다. 기기가 없어도 된다.
 
 ## 비교·판정·보고: compare·baseline·noise·report·index
 

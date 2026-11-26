@@ -17,10 +17,34 @@ kind = "device"
 model = "<기기 모델>"
 ram_class = "8GB"   # 메모리 한도 규칙(MEM-01·MEM-08)의 RAM 등급: 4GB·6GB·8GB·12GB
 
+# (선택) perfkit device·run: SoC preset(저장소 config/devices/), 식힘 문턱, prep
+preset = "exynos-mali"
+
+[devices.phone-a.cool]
+max_ap = 38.0
+max_skin = 35.5
+max_status = 0
+
 [devices.emulator]
 kind = "emulator"
 avd = "<avd 이름>"
 ram_class = "4GB"
+lease = "emu-lab"              # 임대 도구로 띄우고 놓는다(없으면 "none")
+avd_mismatch = "refuse"        # AVD 설정이 expect와 다르면 회차 거부(warn이면 진행하고 무효)
+
+[devices.emulator.expect]
+system_image = "system-images;android-35;google_apis;x86_64"
+cores = 4
+ram_mb = 4096
+gpu_mode = "host"
+resolution = "1080x2400"
+arm_translation = true
+
+# (선택) perfkit run 회차 공통. 자세한 칸은 README 「기기 회차」
+[run]
+saves_dir = "saves"            # <saves_dir>/<세이브 이름>/*를 기기에 넣는다
+seconds = 60
+sample_interval_s = 5.0
 
 # 시나리오(게임 쪽 측정 모드가 받는 이름)
 [[scenarios]]
