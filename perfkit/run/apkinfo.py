@@ -110,7 +110,10 @@ def build_info(apk: Path, template: str | None, explicit: str | None = None) -> 
         cands.append(Path(explicit))
     if template:
         apk = Path(apk).resolve()
-        cands.append(Path(template.format(apk_dir=str(apk.parent), apk_dir_name=apk.parent.name, apk_stem=apk.stem)))
+        from perfkit.paths import expand_text
+
+        cands.append(Path(expand_text(template, apk_dir=str(apk.parent), apk_dir_name=apk.parent.name,
+                                      apk_stem=apk.stem)))
     for c in cands:
         if c.exists():
             try:

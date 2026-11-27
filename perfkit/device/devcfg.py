@@ -143,12 +143,10 @@ def resolve_path(value: str | None, s: Settings | None = None) -> Path | None:
     """프로필 [run]의 상대 경로는 프로필 폴더 기준."""
     if not value:
         return None
-    p = Path(value).expanduser()
-    if p.is_absolute():
-        return p
+    from perfkit.paths import expand_path
+
     s = s or get_settings()
-    base = s.profile_path.parent if s.profile_path else Path.cwd()
-    return (base / p).resolve()
+    return expand_path(value, s.profile_path.parent if s.profile_path else None)
 
 
 def adb_path(dev: dict | None = None, s: Settings | None = None) -> str:

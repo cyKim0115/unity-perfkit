@@ -41,10 +41,9 @@ def baselines_dir(settings=None) -> Path:
     s = settings or get_settings()
     d = (s.profile.get("baseline") or {}).get("dir") if s.profile else None
     if d:
-        p = Path(d)
-        if not p.is_absolute() and s.profile_path is not None:
-            p = (s.profile_path.parent / p).resolve()
-        return p
+        from perfkit.paths import expand_path
+
+        return expand_path(d, s.profile_path.parent if s.profile_path is not None else None)
     try:
         return results_dir() / "baselines"
     except ConfigError as exc:

@@ -11,6 +11,7 @@ from pathlib import Path
 
 import perfkit
 from perfkit.diff import resultio
+from perfkit.paths import expand_path
 from perfkit.static import assets as A
 from perfkit.static import project as PR
 from perfkit.static import settings as ST
@@ -30,8 +31,8 @@ def static_config(project_arg: str | None = None) -> dict:
     for src, path in ((s.profile, s.profile_path), (s.user, s.user_path)):
         sec = (src or {}).get("static") or {}
         for k, v in sec.items():
-            if k == "project" and v and path is not None and not Path(str(v)).is_absolute():
-                v = str((path.parent / str(v)).resolve())
+            if k == "project" and v:
+                v = str(expand_path(v, path.parent if path is not None else None))
             cfg[k] = v
     env = s.env.get("PERFKIT_STATIC_PROJECT")
     if env:

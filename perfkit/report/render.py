@@ -86,10 +86,9 @@ def theme_css(css_path: str | Path | None = None) -> str:
             s = settings()
             c = (s.profile.get("report") or {}).get("css") if s.profile else None
             if c:
-                p = Path(c)
-                if not p.is_absolute() and s.profile_path is not None:
-                    p = s.profile_path.parent / p
-                css_path = p
+                from perfkit.paths import expand_path
+
+                css_path = expand_path(c, s.profile_path.parent if s.profile_path is not None else None)
         except Exception:
             css_path = None
     if css_path is not None and Path(css_path).is_file():

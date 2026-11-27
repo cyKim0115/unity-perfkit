@@ -3,13 +3,17 @@
 빌드 명령·산출물 위치는 프로젝트마다 다르므로 코드에 두지 않고 프로젝트 프로필 `[build]`에서 읽는다.
 
     [build]
-    command = ["<빌드 도구>", "...", "-Commit", "{commit}"]   # 자리: {commit} {commit8} {label}
+    command = ["<빌드 도구>", "...", "-Commit", "{commit}"]   # 자리: {commit} {commit8} {label} {profile_dir}
     state_glob = "<빌드 결과 JSON glob>"     # 빌드가 남기는 JSON(필수 칸: commit, file=APK 경로)
     log = "{state_dir}/logs/build.log"        # (선택) L1 셰이더 변형 집계용 빌드 로그
     layout = "{state_dir}/logs/buildlayout.json"  # (선택) Addressables 레이아웃
     cache = "build-cache.json"               # 커밋 → APK 색인(기본 <결과 폴더>/build-cache.json)
     timeout_min = 40
     probe_key = "probeCode"                   # 빌드 JSON에서 측정 모드 여부 칸(값 yes·true면 측정 모드)
+
+command의 각 인자와 state_glob·log·layout·cache는 `~`와 환경 변수(`${VAR}`, Windows `%VAR%`)를 펼친다.
+state_glob·cache의 상대 경로와 `{profile_dir}`는 프로필 파일 폴더 기준이다. 그래서 PC마다 다른 위치는
+환경 변수나 프로필 옆 상대 경로로 적으면 프로필을 PC마다 고치지 않아도 된다.
 
 APK는 빌드가 둔 곳에 그대로 두고 색인만 남긴다(복사하면 빌드 정보 JSON과의 연결이 끊김). 다시 쓸 때 파일 크기·sha256이 같은지 본다.
 """
@@ -65,8 +69,9 @@ def _profile_dir(settings) -> Path:
 
 
 def _resolve(p: str, settings) -> Path:
-    q = Path(os.path.expandvars(os.path.expanduser(p)))
-    return q if q.is_absolute() else (_profile_dir(settings) / q).resolve()
+    from perfkit.paths import expand_path
+
+    return expand_path(p, _profile_dir(settings))
 
 
 def sha256_file(p: Path) -> str:
@@ -146,14 +151,17 @@ def from_apk(apk: str | Path, settings, label: str) -> Built:
 
 
 def _fmt_cmd(cmd: list, **kw) -> list[str]:
-    return [str(x).format(**kw) for x in cmd]
+    from perfkit.paths import expand_text
+
+    return [expand_text(str(x), **kw) for x in cmd]
 
 
 def build_commit(commit: str, settings, label: str, *, dry_run: bool = False) -> Built:
     bc = build_cfg(settings)
     if not bc.get("command") or not bc.get("state_glob"):
         raise PipelineError("커밋을 빌드하려면 프로젝트 프로필 [build] command·state_glob이 필요")
-    cmd = _fmt_cmd(bc["command"], commit=commit, commit8=commit[:8], label=label)
+    cmd = _fmt_cmd(bc["command"], commit=commit, commit8=commit[:8], label=label,
+                   profile_dir=str(_profile_dir(settings)))
     _log("빌드: " + " ".join(cmd))
     if dry_run:
         raise PipelineError("dry-run: 빌드하지 않음")
@@ -242,7 +250,9 @@ def l1_for(b: Built, settings, results_dir: Path, *, reuse: bool = True) -> Path
     for key, flag in (("log", "--log"), ("layout", "--layout")):
         t = bc.get(key)
         if t and sd:
-            p = Path(t.format(state_dir=sd))
+            from perfkit.paths import expand_text
+
+            p = _resolve(expand_text(t, state_dir=sd), settings)
             if p.exists():
                 args += [flag, str(p)]
     perfkit(args)
