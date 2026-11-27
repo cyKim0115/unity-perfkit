@@ -26,8 +26,12 @@ def _run(args) -> int:
         print("error: 결과 파일은 하나(후보) 또는 둘(기준 후보)")
         return 2
     base_p, cand_p = (args.files[0], args.files[1]) if len(args.files) == 2 else (None, args.files[0])
-    base = resultio.read(base_p) if base_p else None
-    cand = resultio.read(cand_p)
+    try:
+        base = resultio.read(base_p) if base_p else None
+        cand = resultio.read(cand_p)
+    except (OSError, ValueError) as exc:
+        print(f"error: 결과 파일을 읽지 못함: {exc}")
+        return 2
     for name, r in (("기준", base), ("후보", cand)):
         if r is None:
             continue

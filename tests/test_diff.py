@@ -82,3 +82,11 @@ class DiffTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DiffMissingFileTest(unittest.TestCase):
+    def test_missing_file_is_error_not_traceback(self):
+        with tempfile.TemporaryDirectory() as td:
+            rc, out = cli_run(["diff", str(Path(td) / "nope.json")])
+        self.assertEqual(rc, 2)
+        self.assertIn("error: 결과 파일을 읽지 못함", out)

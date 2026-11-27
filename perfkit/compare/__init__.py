@@ -400,6 +400,8 @@ def _run_baseline_show(args) -> int:
         print(json.dumps(doc, ensure_ascii=False, indent=1))
         return 0
     print(f"{doc['name']}  manifest {doc['manifest_version']} {doc['manifest_sha'][:12]}  updated {doc.get('updated_at')}")
+    if doc.get("profile_sha"):
+        print(f"profile {doc.get('profile_name')} {doc['profile_sha'][:12]}")
     for cls, e in doc.get("classes", {}).items():
         print(f"[{cls} / {e['layer']}] runs={e['n_runs']} valid={e['n_valid']} probe={e.get('probe_hash')} "
               f"quality={e.get('quality_hash')} scenario={e.get('scenario')}")

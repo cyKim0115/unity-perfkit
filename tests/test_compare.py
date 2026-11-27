@@ -407,6 +407,7 @@ class CompareCliTest(unittest.TestCase):
         self.assertEqual(rc, 2, text)                          # L2 결과를 L1 칸에 넣지 않음
         rc, text = cli(["baseline", "show", "bl2"])
         self.assertIn("[L2 / 에디터 Play]", text)
+        self.assertIn("profile ", text)
         self.assertIn("dirty=no", text)
         rc, text = cli(["baseline", "list"])
         self.assertIn("L2", text)
