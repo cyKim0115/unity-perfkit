@@ -1,4 +1,6 @@
-"""결정적 층(L0·L1) 결과 두 개의 diff. 비교 결과는 comparison 스키마(method=diff)로 낸다.
+"""L0·L1(결정적 층)·L2(에디터 Play) 결과 두 개의 diff. 비교 결과는 comparison 스키마(method=diff)로 낸다.
+
+L2는 회차 하나끼리의 값 비교다(같은 날 같은 에디터에서 잰 추세용). 잡음 등급 규칙(낮음: +5% 경고·+10% 실패)으로 판정한다.
 
 - 항목별 판정은 `perfkit.verdict.judge_item`(매니페스트 + 프로젝트 프로필 덮어쓰기)으로 한다.
 - 「새로 생긴 위반·없어진 위반」: 소스 위반은 `findings[].fingerprint`, 자산 위반은 `violations`(경로)를 집합으로 비교한다.
@@ -48,8 +50,8 @@ def diff_results(base: dict | None, cand: dict, *, manifest=None, base_ref: str 
     layer = cand["layer"]
     if base is not None and base.get("layer") != layer:
         raise ValueError(f"층이 다름: 기준 {base.get('layer')} ≠ 후보 {layer}")
-    if layer not in ("L0", "L1"):
-        raise ValueError(f"diff는 결정적 층(L0·L1)만: {layer}")
+    if layer not in ("L0", "L1", "L2"):
+        raise ValueError(f"diff는 L0·L1·L2만(기기 층은 compare): {layer}")
     warnings = []
     if base is not None:
         if base.get("manifest_sha") != cand.get("manifest_sha"):

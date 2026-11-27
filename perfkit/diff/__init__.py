@@ -1,4 +1,4 @@
-"""결정적 층(L0·L1) 결과 비교 `perfkit diff`와 결과 파일 입출력(`resultio`).
+"""결정적 층(L0·L1)·에디터 Play(L2) 결과 비교 `perfkit diff`와 결과 파일 입출력(`resultio`).
 
     perfkit diff <기준.json> <후보.json> [--out 비교.json] [--fail-on warn|fail]
     perfkit diff <후보.json>                      기준 없이 절대 기준만
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 
 def register_cli(sub) -> None:
-    p = sub.add_parser("diff", help="L0·L1 결과 두 개 비교(항목 판정, 새로 생긴·없어진 위반)")
+    p = sub.add_parser("diff", help="L0·L1·L2 결과 두 개 비교(항목 판정, 새로 생긴·없어진 위반)")
     p.add_argument("files", nargs="+", metavar="결과.json", help="기준 후보 순서(하나면 후보만)")
     p.add_argument("--out", help="비교 결과(comparison 스키마) JSON 경로")
     p.add_argument("--fail-on", choices=["warn", "fail"], help="이 판정 이상인 항목이 있으면 종료 코드 1")
