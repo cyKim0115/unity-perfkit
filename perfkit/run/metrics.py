@@ -11,7 +11,7 @@
 | CPU-02 | gcAllocB(개발 빌드) 또는 monoAllocB(릴리스 대체, 하한값) | 프레임 평균 B |
 | CPU-03·04, MEM-04·05 | [PerfStats] gcCount·gcResMB·monoMB·totalMB·sysMB | 분당 GC 수, 평균 MB |
 | CPU-15 | EVENT ui_open nextFrameMs, PlayScene 로드 구간 | 최대 ms |
-| GPU-03·04·07 | 프레임 CSV dc·batches·setpass·tris·verts의 near·far 단계 평균 | 개/프레임 |
+| GPU-03·04·07 | 프레임 CSV dc·batches·setpass·tris·verts의 근경·원경 단계 평균(단계 이름 기본 near·far, 프로필 [run] count_phases) | 개/프레임 |
 | MEM-01 | /proc status RssAnon + VmSwap | 최고·P90 MB |
 | MEM-03 | 구간 밖 dumpsys meminfo | MB |
 | BLD-10 | am start -W TotalTime(LaunchState COLD) | 초 |
@@ -29,6 +29,7 @@ from statistics import mean, median
 
 from perfkit.run.probe import ProbeLog
 
+COUNT_PHASES = ("near", "far")  # GPU-03·04·07 근경·원경 단계 이름(프로필 [run] count_phases). 지표 키는 _near·_far 그대로
 SCENE_LOAD = ("load_scene_begin", "load_scene_end")  # CPU-15 addressables_load_ms 구간(프로필 [run] scene_load_phases)
 
 
@@ -88,7 +89,8 @@ def _nc(collector: str, reason: str) -> dict:
     return {"status": "not_collected", "reason": reason, "collector": collector}
 
 
-def frame_items(log: ProbeLog, frames: list[dict], device_kind: str) -> dict:
+def frame_items(log: ProbeLog, frames: list[dict], device_kind: str,
+                count_phases: tuple[str, str] | list[str] | None = None) -> dict:
     items: dict = {}
     if not frames:
         why = "프레임 CSV 없음(측정 모드 없음 또는 받기 실패)"
@@ -148,15 +150,15 @@ def frame_items(log: ProbeLog, frames: list[dict], device_kind: str) -> dict:
         v = _vals(rows, key, True)
         return r(mean(v), 1) if v else None
 
-    near, far = "near", "far"
+    near, far = tuple(count_phases or COUNT_PHASES)[:2]
     items["GPU-04"] = _ok({"setpass_near": ph_mean(near, "setpass"), "setpass_far": ph_mean(far, "setpass"),
                            "batches_near": ph_mean(near, "batches") if dc_ok else None,
                            "batches_far": ph_mean(far, "batches") if dc_ok else None},
-                          "device.render_counters", why="near·far 단계 없음",
+                          "device.render_counters", why=f"{near}·{far} 단계 없음",
                           note=None if dc_ok else "Batches 카운터를 이 빌드에서 못 읽음(dcRecorder=False)")
     items["GPU-07"] = _ok({"verts_near": ph_mean(near, "verts"), "verts_far": ph_mean(far, "verts"),
                            "tris_near": ph_mean(near, "tris"), "tris_far": ph_mean(far, "tris")},
-                          "device.render_counters", why="near·far 단계 없음")
+                          "device.render_counters", why=f"{near}·{far} 단계 없음")
     if dc_ok:
         items["GPU-03"] = _ok({"near": ph_mean(near, "dc"), "far": ph_mean(far, "dc")}, "device.render_counters")
     else:

@@ -202,13 +202,17 @@ def pull_profiler_capture(adb, remote_raw: str, run_dir: Path, frames: int) -> d
     return out
 
 
-def summarize_hint(capture: dict) -> dict | None:
+CAPTURE_START_PHASES = ("near", "far", "popups", "pan-far")  # 프로필 [run] capture_start_phases
+
+
+def summarize_hint(capture: dict, start_phases: list[str] | tuple[str, ...] | None = None) -> dict | None:
     """에디터 쪽 요약 도구에 넘길 값: 측정 첫 단계 프레임부터 600프레임.
+    첫 단계는 start_phases(기본 CAPTURE_START_PHASES) 중 먼저 보이는 것, 없으면 아무 단계나 첫 값.
     캡처 프레임 번호는 앱 시작부터라 측정 모드 PHASE 줄의 frame과 같은 기준이다."""
     if not capture.get("local"):
         return None
     ph = capture.get("phase_frames") or {}
-    start = next((ph[n] for n in ("near", "far", "popups", "pan-far") if isinstance(ph.get(n), int)), None)
+    start = next((ph[n] for n in (start_phases or CAPTURE_START_PHASES) if isinstance(ph.get(n), int)), None)
     if start is None:
         start = next((v for v in ph.values() if isinstance(v, int)), 0)
     return {"raw": capture["local"], "out": capture["local"][:-4] + ".profile.json", "skip_frames": start,
@@ -551,7 +555,7 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
     plog, lines = PB.parse_logcat_file(run_dir / "logcat.txt")
     if capture is not None:
         capture["phase_frames"] = {p.get("name"): p.get("frame") for p in plog.phases if p.get("name")}
-        capture["summarize"] = summarize_hint(capture)
+        capture["summarize"] = summarize_hint(capture, run_cfg.get("capture_start_phases"))
         (run_dir / "capture.json").write_text(json.dumps(capture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     frames = PB.parse_frames_file(csv_local) if pulled else []
     app_pids = {pid}
@@ -602,7 +606,7 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
     # ---- 결과 항목
     items: dict = {}
     if not compat:
-        items.update(M.frame_items(plog, frames, kind))
+        items.update(M.frame_items(plog, frames, kind, run_cfg.get("count_phases")))
         items.update(M.stats_items(plog, kind, srows))
         items.update(M.event_items(plog, tuple(run_cfg.get("scene_load_phases") or M.SCENE_LOAD)))
     items.update(M.load_items(plog, am_d))
@@ -737,6 +741,8 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
         meta["profile_sha"] = s.profile_sha
     if spec.notes:
         meta["notes"] = spec.notes
+    if plog.warnings:
+        meta["probe_warnings"] = list(plog.warnings)  # 측정 모드가 찍은 경고([PerfProbeArgs] 등). logcat.txt에도 있음
     if bi.get("_path"):
         meta["build_info"] = {k: bi.get(k) for k in ("_path", "branch", "probeCode", "finished") if bi.get(k) is not None}
     if not valid:
