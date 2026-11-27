@@ -2,7 +2,7 @@
 
     perfkit compare --base <SPEC> --cand <SPEC> [--noise <기준선|noise.json>] [--out 비교.json] [--report]
     perfkit compare --runs <SPEC> --split arm|alternate|half
-    perfkit baseline register --name <이름> [--runs <SPEC>] [--noise-runs <SPEC>] [--l0 결과] [--l1 결과] [--force]
+    perfkit baseline register --name <이름> [--runs <SPEC>] [--noise-runs <SPEC>] [--l0 결과] [--l1 결과] [--l2 결과] [--force]
     perfkit baseline list | show <이름>
     perfkit noise aa --runs <SPEC> [--out noise.json]
 
@@ -349,10 +349,11 @@ def _run_baseline_register(args) -> int:
         for layer, f in (("L0", args.l0), ("L1", args.l1)):
             if f:
                 det[layer] = Path(f)
-        if not runs and not det:
-            print("error: --runs나 --l0·--l1 중 하나는 있어야 함")
+        l2 = Path(args.l2) if getattr(args, "l2", None) else None
+        if not runs and not det and l2 is None:
+            print("error: --runs나 --l0·--l1·--l2 중 하나는 있어야 함")
             return EXIT_REFUSED
-        p, doc = B.register(args.name, runs=runs, noise_runs=noise_runs, deterministic=det,
+        p, doc = B.register(args.name, runs=runs, noise_runs=noise_runs, deterministic=det, l2=l2,
                             gate_of=_gate_of(_cfg()), force=args.force, results_dir=rd)
     except V.ClassMixError as exc:
         print(f"error: 거부 — {exc}")
@@ -366,7 +367,15 @@ def _run_baseline_register(args) -> int:
               f"metrics={len(e['metrics'])} noise={'yes' if e.get('noise_floor') else 'no'}")
     for layer, d in sorted(doc.get("deterministic", {}).items()):
         print(f"  {layer}: {d['ref']}")
+    for layer, d in sorted((doc.get("editor") or {}).items()):
+        print(f"  {layer}: {d['ref']} runs={d.get('runs')} dirty={_yn(d.get('dirty'))}")
+        if d.get("dirty"):
+            print(f"warning: {layer} 결과는 작업 트리 변경이 있는 상태에서 잰 것(dirty)")
     return 0
+
+
+def _yn(v) -> str:
+    return "-" if v is None else ("yes" if v else "no")
 
 
 def _run_baseline_list(args) -> int:
@@ -374,7 +383,7 @@ def _run_baseline_list(args) -> int:
 
     for b in B.list_baselines():
         cls = ", ".join(f"{c}(valid={v['n_valid']}{', noise' if v['noise'] else ''})" for c, v in b["classes"].items())
-        print(f"{b['name']:24} {b.get('updated_at') or '-':26} {cls} {' '.join(b['deterministic'])}")
+        print(f"{b['name']:24} {b.get('updated_at') or '-':26} {cls} {' '.join(b['deterministic'] + b.get('editor', []))}")
     return 0
 
 
@@ -402,6 +411,10 @@ def _run_baseline_show(args) -> int:
                   + (f"  σd={sd:.2f}% MDE6={n['mde_pct']['6']:.2f}%" if sd is not None and n.get("mde_pct") else ""))
     for layer, d in sorted(doc.get("deterministic", {}).items()):
         print(f"[{layer}] {d['ref']} sha256={d['sha256'][:12]}")
+    for layer, d in sorted((doc.get("editor") or {}).items()):
+        print(f"[{layer} / 에디터 Play] {d['ref']} sha256={d['sha256'][:12]} runs={d.get('runs')} "
+              f"commit={(d.get('commit') or '-')[:12]} probe={d.get('probe_hash')} scenario={d.get('scenario')} "
+              f"dirty={_yn(d.get('dirty'))}")
     return 0
 
 
@@ -488,6 +501,7 @@ def register_cli(sub) -> None:
     r.add_argument("--noise-runs", metavar="SPEC", help="같은 빌드 A/A 회차(잡음 바닥)")
     r.add_argument("--l0", help="L0 결과 파일")
     r.add_argument("--l1", help="L1 결과 파일")
+    r.add_argument("--l2", help="L2 결과 파일(editor play 묶음, 같은 날 추세용. 비교는 diff로)")
     r.add_argument("--results", help="결과 폴더")
     r.add_argument("--force", action="store_true", help="같은 등급이 있으면 바꿈")
     r.set_defaults(func=_run_baseline_register)

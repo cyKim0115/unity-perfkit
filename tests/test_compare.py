@@ -382,6 +382,35 @@ class CompareCliTest(unittest.TestCase):
         st = doc["items"]["MEM-04"]["metrics"]["total_used_mb"]["stat"]
         self.assertEqual(st["floor_source"], "aa")
 
+    def test_baseline_register_l2(self):
+        from perfkit.editor.play import to_result
+        from tests.test_editor_play import play
+
+        self._same_session("aa", rounds=6)
+        l2 = self.results / "editor" / "x" / "base.l2.json"
+        l2.parent.mkdir(parents=True)
+        res = to_result(play(), ref="r1.json")
+        res["source"].update({"runs": 3, "dirty": False})
+        l2.write_text(json.dumps(res), encoding="utf-8")
+        rc, text = cli(["baseline", "register", "--name", "bl2", "--results", str(self.results),
+                        "--runs", "session:aa", "--l2", str(l2)])
+        self.assertEqual(rc, 0, text)
+        self.assertIn("L2: editor/x/base.l2.json runs=3 dirty=no", text)
+        bl = _load(self.results / "baselines" / "bl2.json")
+        e = bl["editor"]["L2"]
+        self.assertEqual((e["runs"], e["probe_hash"], e["scenario"], e["dirty"]), (3, "probe-1-0000abcd", "scene", False))
+        self.assertNotIn("L2", bl["deterministic"])          # 결정적 층과 따로
+        self.assertIn("emulator", bl["classes"])               # 같은 이름의 등급 칸 유지
+        rc, text = cli(["baseline", "register", "--name", "bl2", "--results", str(self.results), "--l2", str(l2)])
+        self.assertEqual(rc, 2, text)                          # 이미 있으면 --force 필요
+        rc, text = cli(["baseline", "register", "--name", "bl2", "--results", str(self.results), "--l1", str(l2)])
+        self.assertEqual(rc, 2, text)                          # L2 결과를 L1 칸에 넣지 않음
+        rc, text = cli(["baseline", "show", "bl2"])
+        self.assertIn("[L2 / 에디터 Play]", text)
+        self.assertIn("dirty=no", text)
+        rc, text = cli(["baseline", "list"])
+        self.assertIn("L2", text)
+
     def test_bundle_with_deterministic(self):
         from perfkit.diff import resultio
         from perfkit.manifest import load

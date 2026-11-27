@@ -179,7 +179,7 @@ def rebuild(results_dir: Path) -> dict:
             con.execute("INSERT OR REPLACE INTO baseline VALUES (?, ?, ?, ?, ?)",
                         (b["name"], bp.relative_to(results_dir).as_posix(), b.get("updated_at"),
                          json.dumps({c: e.get("run_ids") for c, e in (b.get("classes") or {}).items()}),
-                         json.dumps(sorted(b.get("deterministic") or {}))))
+                         json.dumps(sorted(b.get("deterministic") or {}) + sorted(b.get("editor") or {}))))
             nb += 1
         con.commit()
     finally:

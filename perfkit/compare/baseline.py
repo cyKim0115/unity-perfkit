@@ -10,7 +10,11 @@
                               "metrics": {"<ID>.<지표>": {n, median, min, max}},
                               "noise_floor": {"<ID>.<지표>": {cv_pct, sigma_d_pct, mde_pct, …}} | null,
                               "noise_source": {...}}},
-     "deterministic": {"L0": {"ref", "sha256"}, "L1": {...}}}
+     "deterministic": {"L0": {"ref", "sha256"}, "L1": {...}},
+     "editor": {"L2": {"ref", "sha256", "runs", "commit", "probe_hash", "scenario", "save", "dirty", "tree"}}}
+
+L2(에디터 Play)는 결정적 층이 아니라 같은 날 같은 에디터 추세용이라 `deterministic`과 따로 둔다.
+기준선을 비교 한쪽(`baseline:<이름>`)으로 쓸 때 L2는 읽지 않는다. `perfkit diff <ref> <후보 L2>`로 비교한다.
 
 저장 위치: 프로젝트 프로필 `[baseline] dir`(프로필 폴더 기준 상대 경로) → 없으면 `<결과 폴더>/baselines`.
 """
@@ -129,8 +133,8 @@ def _sha_file(p: Path) -> str:
 
 
 def register(name: str, *, runs: list[R.Run] | None = None, noise_runs: list[R.Run] | None = None,
-             deterministic: dict[str, Path] | None = None, gate_of=None, force: bool = False,
-             results_dir: Path | None = None) -> tuple[Path, dict]:
+             deterministic: dict[str, Path] | None = None, l2: Path | None = None, gate_of=None,
+             force: bool = False, results_dir: Path | None = None) -> tuple[Path, dict]:
     """기준선 등록(등급별로 합침). gate_of(layer) → 관문 문턱 dict."""
     from perfkit.config import settings
     from perfkit.manifest import load
@@ -174,6 +178,30 @@ def register(name: str, *, runs: list[R.Run] | None = None, noise_runs: list[R.R
                 pass
         doc["deterministic"][layer] = {"ref": ref, "sha256": _sha_file(path),
                                        "source": res.get("source"), "manifest_sha": res.get("manifest_sha")}
+    if l2 is not None:
+        path = Path(l2)
+        res = json.loads(path.read_text(encoding="utf-8"))
+        if res.get("schema") != "perfkit/result@1" or res.get("layer") != "L2":
+            raise ValueError(f"{path}: L2 결과가 아님(층 {res.get('layer')})")
+        ed = doc.setdefault("editor", {})
+        if "L2" in ed and not force:
+            raise ValueError(f"기준선 {name}에 L2가 이미 있음(바꾸려면 --force)")
+        src = res.get("source") or {}
+        ref = str(path)
+        if results_dir is not None:
+            try:
+                ref = path.resolve().relative_to(results_dir.resolve()).as_posix()
+            except ValueError:
+                pass
+        entry = {"ref": ref, "sha256": _sha_file(path), "runs": int(src.get("runs") or 1),
+                 "manifest_sha": res.get("manifest_sha"), "collected_at": res.get("collected_at")}
+        for k in ("commit", "probe_hash", "scenario", "save", "seed", "frames", "capture_fps", "freeze", "unity",
+                  "quality", "dirty"):
+            if k in src:
+                entry[k] = src[k]
+        if isinstance(src.get("tree"), dict):
+            entry["tree"] = {k: src["tree"][k] for k in ("head", "dirty", "changed", "ignored") if k in src["tree"]}
+        ed["L2"] = entry
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(doc, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return p, doc
@@ -192,7 +220,8 @@ def list_baselines() -> list[dict]:
         out.append({"name": doc["name"], "path": str(p), "updated_at": doc.get("updated_at"),
                     "classes": {c: {"n_valid": e.get("n_valid"), "noise": bool(e.get("noise_floor"))}
                                 for c, e in (doc.get("classes") or {}).items()},
-                    "deterministic": sorted(doc.get("deterministic") or {})})
+                    "deterministic": sorted(doc.get("deterministic") or {}),
+                    "editor": sorted(doc.get("editor") or {})})
     return out
 
 
