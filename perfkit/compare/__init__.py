@@ -503,7 +503,7 @@ def register_cli(sub) -> None:
     aa = s3.add_parser("aa", help="A/A 회차 묶음 → 지표별 CV·σd·MDE·필요 회차")
     aa.add_argument("--runs", metavar="SPEC", help="이미 잰 A/A 회차")
     aa.add_argument("--results")
-    aa.add_argument("--target", type=float, default=5.0, help="필요 회차를 계산할 목표 MDE %(기본 5)")
+    aa.add_argument("--target", type=float, default=5.0, help="필요 회차를 계산할 목표 MDE %%(기본 5)")
     aa.add_argument("--out", help="noise JSON")
     aa.add_argument("--device", help="A/A를 직접 돌릴 기기(--apk와 함께). 없으면 --runs의 회차만 분석")
     aa.add_argument("--apk", help="A/A로 돌릴 APK")
