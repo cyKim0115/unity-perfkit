@@ -54,6 +54,9 @@ def register_cli(sub) -> None:
     p.add_argument("--notes")
     p.add_argument("--fail-on-invalid", action="store_true", help="관문 무효 회차가 있으면 종료 코드 1")
     p.add_argument("--json", action="store_true", help="마지막 줄에 요약 JSON")
+    p.add_argument("--capture", choices=["profiler"],
+                   help="profiler: 개발 빌드 프로파일러 바이너리 로그를 회차 폴더 profiler.raw로 받음(요약은 에디터 쪽 도구, capture.json의 summarize)")
+    p.add_argument("--capture-frames", type=int, default=None, help="캡처 프레임 수(앱 시작부터, 기본 1800)")
     p.set_defaults(func=_cmd)
 
 
@@ -111,7 +114,8 @@ def _cmd(args) -> int:
                    label=args.label, build_info=args.build_info, variant=args.variant,
                    quit_after_end=True if args.quit_after_end else None,
                    freeze=None if args.freeze is None else bool(args.freeze), notes=args.notes,
-                   gate=gate or None, avd_mismatch=args.avd_mismatch)
+                   gate=gate or None, avd_mismatch=args.avd_mismatch, capture=args.capture,
+                   **({"capture_frames": args.capture_frames} if args.capture_frames else {}))
     try:
         if args.mode == "cold-start":
             with Lease(env, dev, enabled=not args.no_lease, keep=args.keep_lease, headless=args.headless,

@@ -49,6 +49,17 @@ class Refused(RuntimeError):
         self.code = code
 
 
+# 프로파일러 캡처(`--capture profiler`). 앱 시작부터 N프레임을 파일로 쓴다(약 170 KB/프레임).
+PROFILER_FRAMES = 1800
+PROFILER_MAX_USED_MEMORY = 268435456
+
+
+def profiler_args(remote_raw: str, frames: int) -> str:
+    """개발 빌드 플레이어의 프로파일러 바이너리 로그 실행 인자."""
+    return (f"-profiler-enable -profiler-log-file {remote_raw} -profiler-capture-frame-count {int(frames)} "
+            f"-profiler-maxusedmemory {PROFILER_MAX_USED_MEMORY}")
+
+
 @dataclass
 class RunSpec:
     device: str
@@ -76,6 +87,8 @@ class RunSpec:
     notes: str | None = None
     gate: dict | None = None            # 관문 문턱 덮기(시험·진단)
     avd_mismatch: str | None = None     # refuse|warn
+    capture: str | None = None          # profiler: 개발 빌드 프로파일러 바이너리 로그를 받음
+    capture_frames: int = PROFILER_FRAMES
 
 
 @dataclass
@@ -158,7 +171,7 @@ def quality_hash(settle: dict | None) -> str | None:
     return hashlib.sha256(json.dumps(sub, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def unity_args(spec: RunSpec, run_id: str, run_cfg: dict) -> str:
+def unity_args(spec: RunSpec, run_id: str, run_cfg: dict, remote_raw: str | None = None) -> str:
     quit_ = spec.quit_after_end if spec.quit_after_end is not None else bool(run_cfg.get("quit_after_end"))
     parts = [f"-perfScenario {spec.scenario}", f"-perfSeconds {int(spec.seconds)}", f"-perfSeed {int(spec.seed)}",
              f"-perfSave {spec.save}", f"-perfRunId {run_id}", f"-perfQuit {1 if quit_ else 0}"]
@@ -167,10 +180,39 @@ def unity_args(spec: RunSpec, run_id: str, run_cfg: dict) -> str:
     extra = " ".join(x for x in (run_cfg.get("extra_args") or "", spec.extra_args or "") if x)
     if extra:
         parts.append(extra)
+    if spec.capture == "profiler" and remote_raw:
+        parts.append(profiler_args(remote_raw, spec.capture_frames))
     s = " ".join(parts)
     if "'" in s:
         raise ValueError("실행 인자에 작은따옴표를 쓸 수 없음")
     return s
+
+
+def pull_profiler_capture(adb, remote_raw: str, run_dir: Path, frames: int) -> dict:
+    """기기의 프로파일러 바이너리 로그를 회차 폴더 `profiler.raw`로 받고 기기에서 지운다."""
+    local = run_dir / "profiler.raw"
+    rr = adb.run("pull", remote_raw, str(local), timeout=600)
+    out = {"remote": remote_raw, "frames_requested": int(frames)}
+    if rr.ok and local.exists():
+        out["local"] = str(local)
+        out["bytes"] = local.stat().st_size
+    else:
+        out["error"] = ("pull 실패: " + (rr.stdout + rr.stderr).strip())[:300]
+    adb.shell(f"rm -f {remote_raw}", timeout=30)
+    return out
+
+
+def summarize_hint(capture: dict) -> dict | None:
+    """에디터 쪽 요약 도구에 넘길 값: 측정 첫 단계 프레임부터 600프레임.
+    캡처 프레임 번호는 앱 시작부터라 측정 모드 PHASE 줄의 frame과 같은 기준이다."""
+    if not capture.get("local"):
+        return None
+    ph = capture.get("phase_frames") or {}
+    start = next((ph[n] for n in ("near", "far", "popups", "pan-far") if isinstance(ph.get(n), int)), None)
+    if start is None:
+        start = next((v for v in ph.values() if isinstance(v, int)), 0)
+    return {"raw": capture["local"], "out": capture["local"][:-4] + ".profile.json", "skip_frames": start,
+            "max_frames": 600}
 
 
 class Live:
@@ -387,7 +429,10 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
     env.sleep(0.5)
 
     # ---- 실행
-    args = unity_args(spec, run_id, run_cfg)
+    remote_raw = f"{perf_dir}/{run_id}.raw" if spec.capture == "profiler" else None
+    if remote_raw:
+        adb.shell(f"rm -f {remote_raw}", timeout=30)
+    args = unity_args(spec, run_id, run_cfg, remote_raw)
     t_launch = env.clock()
     am = adb.run("shell", f"am start -W -n {package}/{activity} -e unity {shlex.quote(args)}", timeout=180)
     (run_dir / "am_start.txt").write_text(am.stdout + am.stderr, encoding="utf-8")
@@ -495,11 +540,19 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
             pulled = True
             break
     adb.shell(f"rm -f {remote_csv}", timeout=30)
+    capture = None
+    if remote_raw:
+        capture = pull_profiler_capture(adb, remote_raw, run_dir, spec.capture_frames)
+        log(f"capture profiler: {capture.get('local') or capture.get('error')}")
     if spec.inject_save and spec.save and spec.save != "current":
         adb.shell(f"rm -rf {saves_root}/{spec.save}", timeout=30)
 
     # ---- 해석
     plog, lines = PB.parse_logcat_file(run_dir / "logcat.txt")
+    if capture is not None:
+        capture["phase_frames"] = {p.get("name"): p.get("frame") for p in plog.phases if p.get("name")}
+        capture["summarize"] = summarize_hint(capture)
+        (run_dir / "capture.json").write_text(json.dumps(capture, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     frames = PB.parse_frames_file(csv_local) if pulled else []
     app_pids = {pid}
     if plog.app_pid:
