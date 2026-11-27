@@ -68,6 +68,23 @@ class CompareValuesTest(unittest.TestCase):
         self.assertEqual(st["outcome"], "same")
         self.assertTrue(st["minor_shift"])
 
+    def test_state_mix_is_not_different(self):
+        # 두 상태(100·130)가 두 쪽 모두 나오는데 기준에 높은 상태가 많음 → 다름이 아니라 판단 보류
+        b = [130.0, 130.0, 130.0, 130.0, 130.0, 100.0]
+        c = [100.0, 130.0, 100.0, 100.0, 100.0, 100.0]
+        st = self._cv(b, c, paired=False, floor=1.0, eq=3.0)
+        self.assertEqual(st["outcome"], "inconclusive")
+        self.assertEqual(st["state_mix"]["levels"], 2)
+        # 세 상태가 섞인 쌍 비교: 구간·p로는 다름이지만 상태 비율 차이 → 판단 보류
+        b = [355.154, 355.157, 355.153, 266.592, 355.172, 355.153]
+        c = [266.543, 354.955, 307.042, 266.540, 266.543, 266.591]
+        st = self._cv(b, c, paired=True, floor=3.0, eq=5.0)
+        self.assertEqual(st["outcome"], "inconclusive")
+        self.assertIn("상태 섞임", " ".join(st["reasons"]))
+        # 수준이 겹치지 않는 진짜 이동은 그대로 다름
+        st = self._cv([130.0] * 6, [100.0] * 5 + [100.2], paired=False, floor=1.0, eq=3.0)
+        self.assertEqual(st["outcome"], "different")
+
     def test_drift(self):
         b = [100.0] * 8
         c = [100.0 + r * 1.0 for r in range(1, 9)]  # 라운드마다 커지는 쌍 차이

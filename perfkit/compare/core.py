@@ -114,6 +114,13 @@ def compare_runsets(base: R.Side, cand: R.Side, *, manifest, cfg: J.CompareConfi
     if compat:
         rb, rc = R.metric_values(b_use), R.metric_values(c_use)
         compat_skipped = sorted(i for i in set(rb) | set(rc) if not (set(rb.get(i, {})) & set(rc.get(i, {}))))
+        allow = cfg.layer_cfg(layer).get("compat_items")
+        if allow is not None:
+            for iid in sorted(set(bvals) | set(cvals)):
+                if iid not in allow:
+                    compat_skipped.append(iid)
+                    bvals.pop(iid, None), cvals.pop(iid, None)
+            compat_skipped = sorted(set(compat_skipped))
         for iid in sorted(set(bvals) | set(cvals)):
             keys = set(bvals.get(iid, {})) & set(cvals.get(iid, {}))
             if not keys:

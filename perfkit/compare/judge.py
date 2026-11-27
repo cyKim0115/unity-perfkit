@@ -162,6 +162,14 @@ def compare_values(base: Sequence[float], cand: Sequence[float], *, paired: bool
         out["reasons"].append("판단 보류: " + ", ".join(why))
         if sigma_d_pct:
             out["recommend_runs"] = S.runs_needed(sigma_d_pct, eq_pct)
+    lv = state_levels(b, c)
+    if lv:
+        out["state_mix"] = lv
+    if outcome == "different" and lv:
+        if lv:
+            out["reasons"].append(f"상태 섞임: 값이 몇 개 수준({lv['levels']})으로만 나뉘고 두 쪽에 같은 수준이 함께 있음 "
+                                  "→ 회차마다 장면 상태가 달라 효과로 볼 수 없음, 판단 보류")
+            outcome = "inconclusive"
     if paired and len(d) >= 5:
         rho, p_drift = S.spearman(list(range(1, len(d) + 1)), d, seed=seed)
         out["drift"] = {"rho": _r(rho), "p": _r(p_drift)}
@@ -175,6 +183,35 @@ def compare_values(base: Sequence[float], cand: Sequence[float], *, paired: bool
         worse = (shift < 0) if better == "higher" else (shift > 0)
         out["direction"] = "worse" if worse else "better"
     return out
+
+
+def state_levels(b: Sequence[float], c: Sequence[float], *, rel: float = 0.005) -> dict | None:
+    """값이 몇 개의 이산 수준으로만 나뉘는지(예: 오브젝트 하나가 보이고 안 보임). 수준이 2개 이상이고 그중 2개 이상이
+    두 쪽 모두에 나오며, 수준 수가 회차 수의 절반 이하일 때만 상태 섞임으로 본다. 수준 = 상대 rel 안의 값 묶음."""
+    allv = sorted(b + c)
+    if not allv:
+        return None
+    levels: list[list[float]] = [[allv[0]]]
+    for v in allv[1:]:
+        ref = levels[-1][0]
+        if abs(v - ref) <= rel * max(abs(ref), 1e-12):
+            levels[-1].append(v)
+        else:
+            levels.append([v])
+    if len(levels) < 2 or len(levels) > max(2, len(allv) // 2):
+        return None
+    centers = [S.median(x) for x in levels]
+
+    def which(v):
+        return min(range(len(centers)), key=lambda i: abs(v - centers[i]))
+
+    lb, lc = {which(v) for v in b}, {which(v) for v in c}
+    shared = lb & lc
+    if len(shared) < 2:
+        return None
+    return {"levels": len(levels), "centers": [round(x, 4) for x in centers],
+            "base_counts": [sum(1 for v in b if which(v) == i) for i in range(len(centers))],
+            "cand_counts": [sum(1 for v in c if which(v) == i) for i in range(len(centers))]}
 
 
 def stat_label(st: dict) -> str:

@@ -228,7 +228,8 @@ def consistency(base: list[Run], cand: list[Run]) -> tuple[list[str], list[str]]
     invalid, warns = [], []
     compat = any(r.meta.get("compat_mode") for r in base + cand)
     if compat:
-        warns.append("호환 모드: 측정 코드가 없는 회차가 있어 측정 코드·품질 설정 해시를 맞대지 않고 두 쪽에 다 있는 지표만 비교")
+        warns.append("호환 모드: 측정 코드가 없는 회차가 있어 측정 코드·품질 설정 해시를 맞대지 않고 두 쪽에 다 있는 지표만 비교"
+                     "(프로필 [compare.\"<층>\"] compat_items가 있으면 그 항목만)")
     for f in HASH_FIELDS:
         if compat and f in ("probe_hash", "quality_hash"):
             continue

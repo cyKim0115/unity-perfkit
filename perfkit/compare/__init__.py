@@ -70,18 +70,21 @@ def _pipeline_sides(args, rd):
             for b in sides:
                 out_sides.append(R.Side(b.label, [], spec=str(b.apk)))
         else:
-            if any(b.built_now for b in sides):
-                PL.revive_device(args.device, s)
-            sess = args.session or PL.session_name(base_b, cand_b, args.scenario)
-            ab = PL.run_abab(base_b, cand_b, device=args.device, rounds=args.rounds, scenario=args.scenario,
-                             seconds=args.seconds, session=sess, max_reruns=args.max_reruns, extra=args.run_arg or [],
-                             results_dir=rd)
+            if args.sessions:
+                names = [x for x in args.sessions.split(",") if x]
+            else:
+                if any(b.built_now for b in sides):
+                    PL.revive_device(args.device, s)
+                sess = args.session or PL.session_name(base_b, cand_b, args.scenario)
+                names = PL.run_abab(base_b, cand_b, device=args.device, rounds=args.rounds, scenario=args.scenario,
+                                    seconds=args.seconds, session=sess, max_reruns=args.max_reruns,
+                                    extra=args.run_arg or [], results_dir=rd).sessions
             runs = []
-            for name in ab.sessions:
+            for name in names:
                 runs += R.resolve(f"session:{name}", results_dir=rd).runs
             a_runs, b_runs = R.split(runs, "arm")
-            out_sides = [R.Side(base_b.label, a_runs, spec=f"session:{','.join(ab.sessions)}"),
-                         R.Side(cand_b.label, b_runs, spec=f"session:{','.join(ab.sessions)}")]
+            out_sides = [R.Side(base_b.label, a_runs, spec=f"session:{','.join(names)}"),
+                         R.Side(cand_b.label, b_runs, spec=f"session:{','.join(names)}")]
         for side, b in zip(out_sides, sides):
             if b.l1 is not None:
                 from perfkit.diff import resultio
@@ -544,6 +547,7 @@ def _compare_args(c) -> None:
     g.add_argument("--session", help="교차 실행 세션 이름(기본 <시각>-<기준>-vs-<후보>-<시나리오>)")
     g.add_argument("--max-reruns", type=int, default=1, help="관문 무효 라운드를 다시 돌리는 횟수")
     g.add_argument("--run-arg", action="append", metavar="ARG", help="perfkit run abab에 그대로 넘길 인자(여러 번)")
+    g.add_argument("--sessions", metavar="S1,S2", help="기기 실행 대신 이미 잰 교차 세션을 다시 판정(설정·잡음 등급을 바꾼 뒤)")
     g.add_argument("--no-l1", action="store_true", help="L1 점검·diff를 하지 않음")
     g.add_argument("--no-run", action="store_true", help="기기 실행 없이 빌드·L1 diff까지만")
     g.add_argument("--rebuild", action="store_true", help="캐시를 무시하고 다시 빌드")
