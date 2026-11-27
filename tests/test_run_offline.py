@@ -165,6 +165,36 @@ class RunOnceTest(unittest.TestCase):
             self.assertIn("다른 에디터", out.meta["invalid_reason"])
             self.assertGreater(out.meta["host"]["other_unity_pct"], 1.0)
 
+    def test_open_editor_gate(self):
+        editor = '"Unity.exe" -projectPath "C:/other" -logFile x'
+        with Sandbox() as sb:                                   # 관문 끔(기본): 열려 있어도 돌고 수만 남김
+            out = run_once(self.spec(sb), _env(sb, FakeDevice(), FakeProbe(busy=10, busy_cmd=editor)))
+            self.assertTrue(out.valid, out.meta.get("invalid_reason"))
+            self.assertEqual(out.meta["host"]["editors_open"], 1)
+        with Sandbox() as sb:                                   # 켜면 시작 전에 거부(바쁜 호스트와 같은 4)
+            with self.assertRaises(Refused) as cm:
+                run_once(self.spec(sb, gate={"other_editors_max": 0}),
+                         _env(sb, FakeDevice(), FakeProbe(busy=10, busy_cmd=editor)))
+            self.assertEqual(cm.exception.code, 4)
+            self.assertIn("다른 에디터가 열려 있음", str(cm.exception))
+        with Sandbox() as sb:
+            out = run_once(self.spec(sb, gate={"other_editors_max": 0}), _env(sb, FakeDevice()))
+            self.assertTrue(out.valid, out.meta.get("invalid_reason"))
+            self.assertEqual(out.meta["host"]["editors_open"], 0)
+
+    def test_health_rule_marks_degraded(self):
+        with Sandbox() as sb:
+            rule = {"health": [{"metric": "FRM-03.fps_avg", "min": 100000}]}
+            out = run_once(self.spec(sb, gate=rule), _env(sb, FakeDevice()))
+            self.assertFalse(out.valid)
+            self.assertTrue(out.meta.get("degraded"))
+            self.assertIn("저하 상태: FRM-03.fps_avg", out.meta["invalid_reason"])
+            self.assertEqual(out.schema_errors, [])
+        with Sandbox() as sb:
+            out = run_once(self.spec(sb, gate={"health": [{"metric": "FRM-03.fps_avg", "min": 1}]}), _env(sb, FakeDevice()))
+            self.assertTrue(out.valid, out.meta.get("invalid_reason"))
+            self.assertNotIn("degraded", out.meta)
+
     def test_compat_mode(self):
         with Sandbox() as sb:
             out = run_once(self.spec(sb, seconds=1), _env(sb, FakeDevice(probe=False)))

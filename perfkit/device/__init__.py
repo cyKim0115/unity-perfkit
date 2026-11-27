@@ -173,12 +173,18 @@ def _cmd_host_gate(args) -> int:
     ed = hc.get("editor_images") or []
     emu = hc.get("emulator_images") or []
     w = H.measure_idle(probe, ed + emu, secs)
+    eds = H.open_editors(probe, hc)
+    lim = gate.get("other_editors_max")
     ok = w.busy_pct is not None and w.busy_pct <= float(gate["host_busy_before_max"]) and \
-        w.pct(ed) <= float(gate["other_unity_pct_max"]) and not busy
+        w.pct(ed) <= float(gate["other_unity_pct_max"]) and not busy and \
+        (lim is None or len(eds) <= int(lim))
     print(f"host {secs:.0f}s: busy={w.busy_pct}% (≤{gate['host_busy_before_max']}) editors={w.count(ed)} "
-          f"editor_cpu={w.pct(ed)}% (≤{gate['other_unity_pct_max']}) emulator_cpu={w.pct(emu)}% → {'pass' if ok else 'fail'}")
+          f"open_editors={len(eds)}" + (f" (≤{lim})" if lim is not None else " (관문 끔)") +
+          f" editor_cpu={w.pct(ed)}% (≤{gate['other_unity_pct_max']}) emulator_cpu={w.pct(emu)}% → {'pass' if ok else 'fail'}")
     for b in busy:
         print(f"busy: {b}")
+    for pid, cmd in eds:
+        print(f"open editor: pid {pid} {cmd[:160]}")
     return 0 if ok else 1
 
 

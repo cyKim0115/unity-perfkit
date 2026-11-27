@@ -268,5 +268,43 @@ def busy_reasons(probe: HostProbe, host_cfg: dict) -> list[str]:
     return reasons
 
 
+def open_editors(probe: HostProbe, host_cfg: dict) -> list[tuple[int, str]]:
+    """열린 에디터 프로세스(pid, 명령줄): editor_images 중 명령줄이 editor_open_cmdline에 맞고
+    editor_ignore_cmdline에 안 맞는 것. CPU를 거의 안 써도 센다(관문 other_editors_max)."""
+    want = re.compile(host_cfg.get("editor_open_cmdline") or r"(?i)-projectPath")
+    ign = host_cfg.get("editor_ignore_cmdline")
+    ign_rx = re.compile(ign) if ign else None
+    out, seen = [], set()
+    for image in host_cfg.get("editor_images") or []:
+        for pid, cmd in probe.cmdlines(image):
+            if pid in seen or not want.search(cmd or "") or (ign_rx and ign_rx.search(cmd or "")):
+                continue
+            seen.add(pid)
+            out.append((pid, cmd or ""))
+    return out
+
+
+def health_reasons(rules: list[dict] | None, items: dict, scenario: str | None) -> list[str]:
+    """회차 뒤 상태 검사. rules: [{metric: "<ID>.<지표>", min|max: 값, scenario?: 이름}].
+    지표 값이 하한 밑·상한 위면 이유(장비가 정상 상태가 아니었다는 뜻, 판정에서 뺀다)."""
+    out = []
+    for r in rules or []:
+        if r.get("scenario") and r["scenario"] != scenario:
+            continue
+        metric = str(r.get("metric") or "")
+        if "." not in metric:
+            continue
+        iid, key = metric.split(".", 1)
+        ent = items.get(iid) or {}
+        v = (ent.get("values") or {}).get(key) if ent.get("status") == "ok" else None
+        if not isinstance(v, (int, float)) or isinstance(v, bool):
+            continue
+        if r.get("min") is not None and v < float(r["min"]):
+            out.append(f"저하 상태: {metric} {v} < {r['min']}")
+        if r.get("max") is not None and v > float(r["max"]):
+            out.append(f"저하 상태: {metric} {v} > {r['max']}")
+    return out
+
+
 def match_any(name: str, patterns: list[str]) -> bool:
     return any(fnmatch.fnmatch(name, p) for p in patterns)

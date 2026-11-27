@@ -100,7 +100,8 @@ Unity 에디터 Play에서 같은 시나리오를 돌려 모은 값을 L2 결과
 
 관문은 회차가 쓸 만한 조건에서 돌았는지 봅니다. 걸린 회차도 폴더는 남고(`valid=false` + 이유), 판정에서 빼는 것은 `compare`가 합니다.
 
-- 에뮬레이터(L3-E, 호스트 유휴 관문): 측정 전 호스트 CPU ≤ `host_busy_before_max`, 수집 중(첫 측정 단계 ~ 끝 신호) ≤ `host_busy_during_max`, 다른 에디터 프로세스(`[host] editor_images`)의 호스트 점유 ≤ `other_unity_pct_max`, logcat 재연결 ≤ `logcat_restarts_max`. 기본 15 · 25 · 1 · 0(%·회). 문턱 정본은 프로필 `[compare."L3-E".gate]`이고 `compare`가 같은 값으로 다시 봅니다. 호스트 CPU를 못 재는 OS면 「확인 못 함」 경고만 남깁니다.
+- 에뮬레이터(L3-E, 호스트 유휴 관문): 측정 전 호스트 CPU ≤ `host_busy_before_max`, 수집 중(첫 측정 단계 ~ 끝 신호) ≤ `host_busy_during_max`, 다른 에디터 프로세스(`[host] editor_images`)의 호스트 점유 ≤ `other_unity_pct_max`, logcat 재연결 ≤ `logcat_restarts_max`. 기본 15 · 25 · 1 · 0(%·회).
+  - 선택 관문 둘(기본 끔): `other_editors_max`는 프로젝트를 연 다른 에디터 프로세스 수(`[host] editor_open_cmdline`에 맞는 명령줄, 임포트 워커 제외)의 상한입니다. CPU를 거의 안 써도 에디터가 호스트 GPU를 나눠 쓰면 에뮬레이터(`-gpu host`) 그리기가 느려지고, 그 상태가 에뮬레이터를 다시 띄울 때까지 남을 수 있어 CPU 문턱으로는 못 잡습니다. 넘으면 회차를 시작하지 않고(종료 코드 4) 수집 중에 열리면 무효입니다. 수는 `host.editors_open`에 남습니다. `health`는 회차 뒤 상태 검사 목록(`{metric, min|max, scenario}`)으로, 정상 상태라면 나와야 할 값(예: 가벼운 장면 평균 fps 하한)을 벗어나면 그 회차를 무효로 하고 `degraded: true`를 남깁니다. 문턱 정본은 프로필 `[compare."L3-E".gate]`이고 `compare`가 같은 값으로 다시 봅니다. 호스트 CPU를 못 재는 OS면 「확인 못 함」 경고만 남깁니다.
 - 실기기(L3-D): 회차 전 `wait-cool`(열 상태·AP·SKIN 문턱, 화면이 꺼지거나 시간이 넘으면 종료 코드 3), 시작 열 상태가 `max_status`보다 높으면 무효, logcat 재연결.
 - 공통: 시나리오가 끝까지 가지 않거나(`END result=fail`, 앱 종료, 시간 초과) 프레임 CSV를 못 받으면 무효.
 

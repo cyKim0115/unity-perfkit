@@ -48,6 +48,8 @@ RUN_DEFAULTS = {
 BATCH_BUILD_RE = r"(?i)^(?=.*-batchmode)(?=.*(-executeMethod|-buildTarget))(?!.*AssetImportWorker)"
 
 # 호스트 유휴 관문 기본(에뮬레이터). 문턱 정본은 프로필 [compare."L3-E".gate](비교와 같은 값)
+# 기본에 없는(끈) 관문: other_editors_max(열린 다른 에디터 수, CPU를 안 써도 호스트 GPU를 나눠 에뮬레이터가
+# 느려질 수 있음), health(회차 뒤 상태 검사 [{metric, min|max, scenario?}], 밑이면 무효·degraded)
 GATE_DEFAULTS = {
     "host_busy_before_max": 15.0,
     "host_busy_during_max": 25.0,
@@ -58,6 +60,9 @@ HOST_DEFAULTS = {
     "idle_seconds": 10.0,
     "emulator_images": ["qemu-system-x86_64.exe", "qemu-system-aarch64.exe", "qemu-system-x86_64"],
     "editor_images": ["Unity.exe", "Unity"],
+    # 「열린 에디터」로 셀 명령줄(관문 other_editors_max). 허브 같은 도우미는 프로젝트 경로 인자가 없어 빠진다
+    "editor_open_cmdline": r"(?i)-projectPath",
+    "editor_ignore_cmdline": r"(?i)AssetImportWorker",
     # 이 프로세스가 이 명령줄 정규식으로 돌고 있으면 회차를 시작하지 않는다(배치 빌드 등)
     # 에디터의 임포트 워커(AssetImportWorker)도 -batchMode로 뜨므로 빌드 메서드·빌드 대상이 있는 것만 본다
     "busy": [{"image": img, "cmdline": BATCH_BUILD_RE} for img in ("Unity.exe", "Unity")],

@@ -289,6 +289,11 @@ def run_once(spec: RunSpec, env: Env) -> Outcome:
     busy = H.busy_reasons(env.probe, host_cfg)
     if busy:
         raise Refused("호스트가 바쁨(회차를 시작하지 않음): " + "; ".join(busy), 4)
+    ed_lim = gate.get("other_editors_max")
+    eds_before = H.open_editors(env.probe, host_cfg) if kind == "emulator" else []
+    if ed_lim is not None and len(eds_before) > int(ed_lim):
+        raise Refused(f"다른 에디터가 열려 있음 {len(eds_before)}개 > {ed_lim}(회차를 시작하지 않음): "
+                      + "; ".join(f"pid {p} {c[:120]}" for p, c in eds_before), 4)
     st = adb.run("get-state", timeout=20)
     if st.stdout.strip() != "device":
         raise Refused(f"기기 {adb.serial} 상태가 device가 아님: {(st.stdout + st.stderr).strip()[:200]}", 3)
@@ -417,6 +422,8 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
     images_emu = list(host_cfg.get("emulator_images") or [])
     images_ed = list(host_cfg.get("editor_images") or [])
     idle_s = float(host_cfg.get("idle_seconds", 10))
+    ed_lim = gate.get("other_editors_max")
+    eds_before = H.open_editors(env.probe, host_cfg) if kind == "emulator" else []
     before = H.measure_idle(env.probe, images_emu + images_ed, idle_s, sleep=env.sleep)
     log(f"host before {idle_s:.0f}s: busy={before.busy_pct}% editor={before.pct(images_ed)}%")
 
@@ -651,6 +658,8 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
         info = env.probe.info()
         busy_before = before.busy_pct
         busy_during = during.busy_pct if during else None
+        eds_after = H.open_editors(env.probe, host_cfg)
+        editors_open = max(len(eds_before), len(eds_after))
         other = during.pct(images_ed) if during else None
         host_doc = {"name": info.get("name"), "cpu": info.get("cpu") or "unknown", "os": info.get("os") or "unknown",
                     "gpu": info.get("gpu") or "unknown",
@@ -659,6 +668,7 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
                     "idle_gate_threshold": gate.get("host_busy_during_max"),
                     "other_unity_pct": other, "other_unity_before_pct": before.pct(images_ed),
                     "editors_running": during.count(images_ed) if during else before.count(images_ed),
+                    "editors_open": editors_open,
                     "emulator_pct": during.pct(images_emu) if during else None,
                     "during_seconds": during.seconds if during else None, "idle_seconds": before.seconds,
                     "measured": busy_before is not None and busy_during is not None}
@@ -671,6 +681,8 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
                 reasons.append(f"수집 중 호스트 CPU {busy_during}% > {gate['host_busy_during_max']}%")
             if other is not None and other > float(gate.get("other_unity_pct_max", 1e9)):
                 reasons.append(f"다른 에디터 프로세스 호스트 점유 {other}% > {gate['other_unity_pct_max']}%")
+        if ed_lim is not None and editors_open > int(ed_lim):
+            reasons.append(f"다른 에디터가 열림 {editors_open}개 > {ed_lim}")
         if avd_issues:
             reasons.append("AVD 설정 다름: " + "; ".join(avd_issues))
     else:
@@ -680,6 +692,8 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
             reasons.append(f"시작 열 상태 {ts0} > {cool.get('max_status', 0)}")
     if restarts > int(gate.get("logcat_restarts_max", 0)):
         reasons.append(f"logcat 재연결 {restarts}회 > {gate.get('logcat_restarts_max', 0)}")
+    degraded = H.health_reasons(gate.get("health"), result_items, spec.scenario) if not compat else []
+    reasons += degraded
     valid = not reasons
 
     # ---- meta·result
@@ -747,6 +761,8 @@ def _run_in_dir(spec, env, s, dev, run_cfg, host_cfg, kind, layer, gate, adb, lo
         meta["build_info"] = {k: bi.get(k) for k in ("_path", "branch", "probeCode", "finished") if bi.get(k) is not None}
     if not valid:
         meta["invalid_reason"] = "; ".join(reasons)
+    if degraded:
+        meta["degraded"] = True
     if kind == "emulator":
         meta["emu"] = emu
         meta["host"] = host_doc

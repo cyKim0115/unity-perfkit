@@ -101,6 +101,31 @@ class HostGateTest(unittest.TestCase):
         self.assertEqual(len(H.busy_reasons(FakeProbe(busy_cmd=build), cfg)), 1)
 
 
+class OpenEditorsTest(unittest.TestCase):
+    def test_counts_project_editors_only(self):
+        class P(FakeProbe):
+            def cmdlines(self, image):
+                if image != "Unity.exe":
+                    return []
+                return [(1, '"C:/Hub/resources/unity.exe" serve'),
+                        (2, '"Unity.exe" -projectPath "C:/proj" -logFile x'),
+                        (3, '"Unity.exe" "-batchMode" "-name" "AssetImportWorker0" "-projectPath" "C:/proj"')]
+        eds = H.open_editors(P(), DC.HOST_DEFAULTS)
+        self.assertEqual([p for p, _ in eds], [2])
+        self.assertEqual(H.open_editors(FakeProbe(), DC.HOST_DEFAULTS), [])
+
+    def test_health_reasons(self):
+        items = {"FRM-03": {"status": "ok", "values": {"fps_avg": 22.0}},
+                 "MEM-04": {"status": "not_collected"}}
+        rules = [{"metric": "FRM-03.fps_avg", "min": 55, "scenario": "light"},
+                 {"metric": "MEM-04.total_used_mb", "max": 10}]
+        self.assertEqual(len(H.health_reasons(rules, items, "light")), 1)
+        self.assertIn("저하 상태", H.health_reasons(rules, items, "light")[0])
+        self.assertEqual(H.health_reasons(rules, items, "heavy"), [])          # 시나리오가 다르면 안 봄
+        self.assertEqual(H.health_reasons([{"metric": "FRM-03.fps_avg", "min": 20}], items, None), [])
+        self.assertEqual(H.health_reasons(None, items, "light"), [])
+
+
 class AvdTest(unittest.TestCase):
     def test_describe_and_mismatch(self):
         with Sandbox() as sb:

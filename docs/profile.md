@@ -103,6 +103,8 @@ cold_start_count = 10
 [host]                               # 호스트 유휴 측정
 idle_seconds = 10
 editor_images = ["Unity.exe", "Unity"]
+# editor_open_cmdline = "(?i)-projectPath"          # 「열린 에디터」로 셀 명령줄(관문 other_editors_max)
+# editor_ignore_cmdline = "(?i)AssetImportWorker"   # 빼는 것(에디터의 임포트 워커)
 emulator_images = ["qemu-system-x86_64.exe", "qemu-system-aarch64.exe", "qemu-system-x86_64"]
 busy_files = []                      # 이 파일(glob)이 있으면 회차를 시작하지 않음(빌드 잠금 등)
 
@@ -151,6 +153,12 @@ host_busy_before_max = 15.0          # host.cpu_busy_before
 host_busy_during_max = 25.0          # host.cpu_busy_during
 other_unity_pct_max = 1.0            # host.other_unity_pct
 logcat_restarts_max = 0              # logcat_restarts
+# other_editors_max = 0              # host.editors_open. 열린 다른 에디터 수(기본 끔). 넘으면 회차를 시작하지 않음(종료 코드 4)
+
+# [[compare."L3-E".gate.health]]     # 회차 뒤 상태 검사(기본 없음). 밑이면 무효·meta.degraded
+# metric = "FRM-03.fps_avg"
+# min = 55
+# scenario = "light"                 # 이 시나리오만(없으면 모든 시나리오)
 
 [compare."L3-E".equivalence_pct]     # 항목·지표별 동등 범위
 "MEM-04" = 2.0

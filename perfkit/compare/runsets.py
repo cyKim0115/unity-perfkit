@@ -198,6 +198,7 @@ def gate_check(run: Run, gate: dict) -> str | None:
         ("host_busy_during_max", host.get("cpu_busy_during"), "수집 중 호스트 CPU"),
         ("other_unity_pct_max", host.get("other_unity_pct"), "다른 Unity 프로세스 호스트 점유"),
         ("logcat_restarts_max", run.meta.get("logcat_restarts"), "logcat 재연결"),
+        ("other_editors_max", host.get("editors_open"), "열린 다른 에디터 수"),
     ]
     for key, val, label in checks:
         lim = gate.get(key)
