@@ -10,7 +10,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-LINE_RE = re.compile(r"^(\d\d)-(\d\d) (\d\d:\d\d:\d\d)\.\d+.*\[PerfStats\] t=(.*)$")
+LINE_RE = re.compile(r"^([0-9]{2})-([0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{2})\.[0-9]+.*\[PerfStats\] t=(.*)$")
 
 
 class LegacyError(ValueError):
