@@ -2,28 +2,29 @@
 # 위치: ~/.perfkit/config.toml (Windows는 %USERPROFILE%\.perfkit\config.toml, PERFKIT_CONFIG로 바꿈)
 # 만들기: python -m perfkit config init  → 값을 채운 뒤 python -m perfkit config show
 # 같은 값을 환경 변수로 주면 환경 변수가 이긴다(python -m perfkit config keys).
-# 상대 경로는 이 파일이 있는 폴더 기준이다.
+# 상대 경로는 이 파일이 있는 폴더 기준이다. `~`(홈)와 환경 변수(`${VAR}`, Windows는 `%VAR%`도)를 쓸 수 있다.
+# 아래 예시는 모두 주석이다. 필요한 줄만 주석을 풀고 값을 바꾼다(그대로 두면 설정 없음과 같다).
 
 # 프로젝트 프로필(프로젝트마다 하나, 저장소 밖). 예시: 저장소 config/profile.example.toml
-profile = "C:/path/to/project/perf/profile.toml"
+# profile = "~/my-game-perf/profile.toml"
 
 [paths]
 # 결과 저장 폴더. 프로필에 있으면 여기서는 비워 둔다(여기 값이 이김).
-# results = "D:/perf-results/<project>"
+# results = "~/perf-results/my-game"
 # (선택) 점검 항목표 원본 md. 테스트가 매니페스트 ID와 대조한다.
-# checklist = "C:/path/to/checklist.md"
+# checklist = "~/my-game-perf/checklist.md"
 
 [tools]
 # 비우면 PATH의 명령을 쓴다.
-# adb = "C:/Android/Sdk/platform-tools/adb.exe"
-# android_sdk = "C:/Android/Sdk"
+# adb = "${ANDROID_SDK_ROOT}/platform-tools/adb"
+# android_sdk = "${ANDROID_SDK_ROOT}"
 # emu_lab = "emu-lab"
-# unity_slot = "C:/path/to/unity-slot.cmd"
-# build_script = "C:/path/to/build.ps1"
+# unity_slot = "~/tools/unity-slot/unity-slot.cmd"
+# build_script = "~/tools/build/build.ps1"
 
 [build]
 # slot = "<project>-1"
 
 # 기기 serial은 PC마다 다르므로 여기에 둔다. 기기 정의(종류·RAM 등급)는 프로필에 있다.
-[devices.phone-a]
-serial = "<adb devices에 보이는 serial>"
+# [devices.phone-a]
+# serial = "<adb devices에 보이는 serial>"

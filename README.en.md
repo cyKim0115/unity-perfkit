@@ -178,7 +178,7 @@ More: [verdicts and statistics](docs/judging.md), [collection layers](docs/layer
 
 ## The project profile
 
-Keep one TOML file per project on the game's side and point the user config's `profile` at it. Values are looked up as environment variable → user config → profile → default.
+Keep one TOML file per project on the game's side and point the user config's `profile` at it. Values are looked up as environment variable → user config → profile → default. Paths accept `~` and environment variables (`${VAR}`), and relative paths resolve against the profile's folder, so one profile can serve several machines when machine-specific locations come from environment variables. Without the lease tool or a build command: use `--no-lease` (or `lease = "none"`) and pass prebuilt APKs with `run --apk` or `compare --base-apk … --cand-apk …`.
 
 ```toml
 name = "my-game"
@@ -229,7 +229,7 @@ More: [config and project profile](docs/profile.md), [results folder](docs/resul
 perfkit never launches Unity itself. For device runs your game must follow this contract.
 
 - **Launch arguments**: perfkit starts the game with `am start … -e unity '<args>'` and passes `-perfScenario <name> -perfSeconds <s> -perfSeed <n> -perfSave <save> -perfRunId <id> -perfQuit 0 [-perfFreeze 0|1]`. When `-perfScenario` is present the game enters measurement mode.
-- **Log markers**: `[PerfRun] BEGIN|PHASE|EVENT|END … json={…}` (one-line JSON) and a `[PerfStats] …` line every second. Mark the phases to measure with PHASE `measure:true`; draw-count metrics need phases named `near` and `far`.
+- **Log markers**: `[PerfRun] BEGIN|PHASE|EVENT|END … json={…}` (one-line JSON) and a `[PerfStats] …` line every second. Mark the phases to measure with PHASE `measure:true`; draw-count metrics need a near and a far phase (named `near` and `far` by default; rename them with `[run] count_phases` in the profile).
 - **Frame CSV**: collect one row per frame and write them all at the end to `<files>/perf/<runId>.csv` (`frame,tReal,tGame,phase,dtMs,cpuMs,mainMs,renderMs,…`).
 - **Determinism**: start from the same save and the same seed, and freeze scene state that would otherwise change by itself during measurement (wandering characters, timed events — a movement lock, for example). If what is drawn differs between runs, that difference becomes noise or triggers the state-mixing check. After loading, report the quality settings (graphics tier, target FPS, vSync, resolution) in a `settle` phase.
 - **Probe version**: `probeHash` in BEGIN. Change it when the way you measure changes; runs with different probe versions cannot be compared. After changing the measurement code, measure the baseline again.
@@ -250,10 +250,10 @@ Builds without a measurement mode still run in **compatibility mode**, but only 
 
 - **Emulator metrics**: absolute values are meaningless; only change is judged. Heat, GPU clock, GPU usage, battery, power, GPU time and GPU hardware counters are not measured. Emulator noise classes all start as `pending_aa`, so L3-E item verdicts stay pending until the project runs A/A and fills them in the profile. Sensitive to host load.
 - **Values missing from release builds**: per-frame GC allocation (`GC Allocated In Frame`) only exists in development builds; release builds fall back to Mono heap growth, which is a lower bound. Draw Calls and Batches counters may be unreadable in some builds (those items become "not collected"), and GC collection time and Total Reserved memory are not available from the measurement-mode log. Device profiler capture works with development builds only.
-- **Items without a collector yet**: some collectors exist only as names in the manifest (`console.vitals`, `device.exit_info`, `device.gpu_counters`, `device.power`, `device.probe_state`, `editor.device_profile`, `editor.memory_snapshot`, `run.conditions`). GPU-13 (Mali Offline Compiler) is not connected either. These items stay "not collected".
+- **Items without a collector yet**: nine collectors exist only as names in the manifest (`console.vitals`, `device.exit_info`, `device.gpu_counters`, `device.power`, `device.probe_state`, `editor.device_profile`, `editor.memory_snapshot`, `run.conditions`, and `build.malioc` for GPU-13). `manifest collectors` marks them 「예정」 (planned), and their items stay "not collected".
 - **Standard-library statistics**: bootstrap, Wilcoxon, Mann-Whitney and Spearman are implemented in-house (exact distributions for small samples, approximations for large ones). They have not been cross-checked against a general-purpose statistics package.
 - **Static check (L0)**: C# source is checked with regular expressions and method ranges. The call graph is not followed, so functions called from Update are not treated as per-frame. Counts may differ from Project Auditor.
-- **Scenario naming assumptions**: draw-count metrics expect phases named `near` and `far`; the UI-open hitch metric expects `EVENT kind=ui_open`.
+- **Scenario naming assumptions**: draw-count metrics expect a near and a far phase (default names `near` and `far`, configurable with `[run] count_phases`); the UI-open hitch metric expects `EVENT kind=ui_open` (not configurable).
 - **Scope**: device runs are Android-only (adb). The editor-side tool for L2 and editor audit merging is not part of this repository (only its format is defined).
 - **Language**: CLI help, manifest texts and the documents under `docs/` are in Korean.
 
@@ -270,6 +270,7 @@ Builds without a measurement mode still run in **compatibility mode**, but only 
 | [Results folder](docs/results.md) | folder layout, run folder, schemas, index, reports |
 | [Extending](docs/extending.md) | repository layout, adding commands and collectors, tests |
 | [Manifest changes](manifest/CHANGES.md) | threshold and item changes |
+| [Claude Code skill template](examples/claude-skill/README.md) | a `SKILL.md` template that makes an agent run perfkit through fixed rules, gates and three flows |
 
 ## License
 

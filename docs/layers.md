@@ -123,7 +123,7 @@ Unity 에디터 Play에서 같은 시나리오를 돌려 모은 값을 L2 결과
 | CPU-02 | gcAllocB(개발 빌드), 없으면 monoAllocB(릴리스 대체, 하한값) 프레임 평균 |
 | CPU-03·04, MEM-04·05 | `[PerfStats]` gcCount·gcResMB·monoMB·totalMB·sysMB |
 | CPU-15 | `EVENT kind=ui_open` nextFrameMs 최대(처음 열기·다시 열기 따로 detail), 씬 로드 구간(`[run] scene_load_phases`) |
-| GPU-03·04·07 | `near`·`far` 단계 평균 Draw Calls·Batches(카운터가 있을 때만)·SetPass·정점·삼각형 |
+| GPU-03·04·07 | 근경·원경 단계(기본 `near`·`far`, `[run] count_phases`) 평균 Draw Calls·Batches(카운터가 있을 때만)·SetPass·정점·삼각형 |
 | MEM-01 | /proc status RssAnon+VmSwap 최고·P90 |
 | MEM-03 | 구간 밖 meminfo PSS·Private Dirty·Native·EGL/GL mtrack·Gfx dev·Unknown·Code |
 | BLD-10 | `am start -W` TotalTime(콜드) |

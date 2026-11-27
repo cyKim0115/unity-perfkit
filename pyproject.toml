@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "perfkit"
 version = "0.1.0"
-description = "Unity 모바일 게임 성능 점검: 매니페스트·결과 스키마·판정 규칙과 수집기"
+description = "Performance checks for Unity Android games: a fixed check manifest, collectors and statistical A/B verdicts (Unity 모바일 게임 성능 점검)"
 license = {text = "MIT"}
 requires-python = ">=3.11"
 dependencies = []

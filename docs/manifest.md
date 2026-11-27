@@ -156,49 +156,49 @@ basis = "프로젝트가 정함"
 
 `by_layer.<층>.collector`의 이름 앞부분이 구현 패키지입니다(`static.*` → `perfkit/static`). 표는 `python -m perfkit manifest collectors --markdown`으로 다시 뽑습니다(매니페스트 1.0.0).
 
-| 수집기 | 구현 패키지 | 층 | 항목 수 | 항목 |
-|---|---|---|---|---|
-| `build.align16k` | perfkit/build | L1 | 1 | BLD-05 |
-| `build.apk_size` | perfkit/build | L1 | 1 | BLD-01 |
-| `build.il2cpp` | perfkit/build | L1 | 1 | BLD-07 |
-| `build.layout` | perfkit/build | L1 | 6 | MEM-09, MEM-11, MEM-12, MEM-14, MEM-17, BLD-02 |
-| `build.malioc` | perfkit/build | L1 | 1 | GPU-13 |
-| `build.pad` | perfkit/build | L1 | 1 | BLD-03 |
-| `build.shader_variants` | perfkit/build | L1 | 1 | GPU-15 |
-| `console.vitals` | perfkit/console | console | 8 | BLD-13, STB-01, STB-02, STB-03, STB-04, STB-05, STB-06, STB-07 |
-| `device.exit_info` | perfkit/device | L3-E·L3-D | 2 | STB-03, STB-10 |
-| `device.frame_timing` | perfkit/device | L3-E·L3-D | 6 | FRM-01, FRM-02, FRM-03, GPU-01, GPU-25, BLD-12 |
-| `device.gc_alloc` | perfkit/device | L3-E·L3-D | 1 | CPU-02 |
-| `device.gpu_counters` | perfkit/device | L3-D | 5 | GPU-08, GPU-09, GPU-10, GPU-16, GPU-24 |
-| `device.gpu_freq` | perfkit/device | L3-D | 2 | GPU-02, THM-03 |
-| `device.logcat` | perfkit/device | L3-E·L3-D | 3 | MEM-18, STB-08, STB-09 |
-| `device.meminfo` | perfkit/device | L3-E·L3-D | 1 | MEM-03 |
-| `device.phase_markers` | perfkit/device | L3-E·L3-D | 4 | CPU-15, BLD-11, STB-11, AUX-04 |
-| `device.power` | perfkit/device | L3-D | 1 | THM-05 |
-| `device.probe_state` | perfkit/device | L3-D | 2 | CPU-14, MEM-10 |
-| `device.proc_cpu` | perfkit/device | L3-E·L3-D | 2 | AUX-01, AUX-02 |
-| `device.proc_mem` | perfkit/device | L3-E·L3-D | 3 | MEM-01, MEM-02, MEM-08 |
-| `device.render_counters` | perfkit/device | L3-E·L3-D | 4 | CPU-08, GPU-03, GPU-04, GPU-07 |
-| `device.startup` | perfkit/device | L3-E·L3-D | 1 | BLD-10 |
-| `device.sys_load` | perfkit/device | L3-E·L3-D | 1 | AUX-03 |
-| `device.thermal` | perfkit/device | L3-D | 2 | THM-01, THM-02 |
-| `device.unity_memory` | perfkit/device | L3-E·L3-D | 4 | CPU-03, CPU-04, MEM-04, MEM-05 |
-| `editor.device_profile` | perfkit/editor | L3-D | 6 | FRM-04, CPU-01, CPU-05, CPU-07, CPU-09, CPU-13 |
-| `editor.frame_debugger` | perfkit/editor | L2 | 5 | GPU-05, GPU-06, GPU-11, GPU-21, GPU-22 |
-| `editor.memory_snapshot` | perfkit/editor | L3-D | 9 | MEM-06, MEM-07, MEM-11, MEM-12, MEM-13, MEM-14, MEM-15, MEM-16, MEM-17 |
-| `editor.play_counters` | perfkit/editor | L2 | 5 | CPU-02, CPU-09, GPU-03, GPU-04, GPU-07 |
-| `editor.play_events` | perfkit/editor | L2 | 1 | CPU-15 |
-| `editor.play_profile` | perfkit/editor | L2 | 6 | CPU-01, CPU-07, CPU-11, CPU-12, MEM-10, THM-06 |
-| `editor.render_debug` | perfkit/editor | L2 | 4 | GPU-09, GPU-18, GPU-19, GPU-24 |
-| `run.conditions` | perfkit/run | L3-D | 1 | THM-07 |
-| `static.addressables_dupes` | perfkit/static | L0 | 1 | MEM-09 |
-| `static.auditor_code` | perfkit/static | L0 | 6 | SCR-01, SCR-02, SCR-03, SCR-04, SCR-06, SCR-07 |
-| `static.auditor_settings` | perfkit/static | L0 | 1 | SCR-09 |
-| `static.import_rules` | perfkit/static | L0 | 20 | AST-01 ~ AST-20 |
-| `static.project_settings` | perfkit/static | L0 | 14 | FRM-05, CPU-03, CPU-06, CPU-08, CPU-13, CPU-14, MEM-15, BLD-04, BLD-06, BLD-07, BLD-08, BLD-09, BLD-13, THM-04 |
-| `static.render_assets` | perfkit/static | L0 | 4 | GPU-05, GPU-10, GPU-11, GPU-14 |
-| `static.source_scan` | perfkit/static | L0 | 3 | SCR-05, SCR-08, GPU-18 |
-| `static.ui_scan` | perfkit/static | L0 | 2 | CPU-10, THM-06 |
-| `static.urp_settings` | perfkit/static | L0 | 7 | GPU-06, GPU-12, GPU-17, GPU-19, GPU-20, GPU-21, GPU-23 |
+| 수집기 | 구현 패키지 | 상태 | 층 | 항목 수 | 항목 |
+|---|---|---|---|---|---|
+| `build.align16k` | perfkit/build | 구현 | L1 | 1 | BLD-05 |
+| `build.apk_size` | perfkit/build | 구현 | L1 | 1 | BLD-01 |
+| `build.il2cpp` | perfkit/build | 구현 | L1 | 1 | BLD-07 |
+| `build.layout` | perfkit/build | 구현 | L1 | 6 | MEM-09, MEM-11, MEM-12, MEM-14, MEM-17, BLD-02 |
+| `build.malioc` | perfkit/build | 예정 | L1 | 1 | GPU-13 |
+| `build.pad` | perfkit/build | 구현 | L1 | 1 | BLD-03 |
+| `build.shader_variants` | perfkit/build | 구현 | L1 | 1 | GPU-15 |
+| `console.vitals` | perfkit/console | 예정 | console | 8 | BLD-13, STB-01, STB-02, STB-03, STB-04, STB-05, STB-06, STB-07 |
+| `device.exit_info` | perfkit/device | 예정 | L3-E·L3-D | 2 | STB-03, STB-10 |
+| `device.frame_timing` | perfkit/device | 구현 | L3-E·L3-D | 6 | FRM-01, FRM-02, FRM-03, GPU-01, GPU-25, BLD-12 |
+| `device.gc_alloc` | perfkit/device | 구현 | L3-E·L3-D | 1 | CPU-02 |
+| `device.gpu_counters` | perfkit/device | 예정 | L3-D | 5 | GPU-08, GPU-09, GPU-10, GPU-16, GPU-24 |
+| `device.gpu_freq` | perfkit/device | 구현 | L3-D | 2 | GPU-02, THM-03 |
+| `device.logcat` | perfkit/device | 구현 | L3-E·L3-D | 3 | MEM-18, STB-08, STB-09 |
+| `device.meminfo` | perfkit/device | 구현 | L3-E·L3-D | 1 | MEM-03 |
+| `device.phase_markers` | perfkit/device | 구현 | L3-E·L3-D | 4 | CPU-15, BLD-11, STB-11, AUX-04 |
+| `device.power` | perfkit/device | 예정 | L3-D | 1 | THM-05 |
+| `device.probe_state` | perfkit/device | 예정 | L3-D | 2 | CPU-14, MEM-10 |
+| `device.proc_cpu` | perfkit/device | 구현 | L3-E·L3-D | 2 | AUX-01, AUX-02 |
+| `device.proc_mem` | perfkit/device | 구현 | L3-E·L3-D | 3 | MEM-01, MEM-02, MEM-08 |
+| `device.render_counters` | perfkit/device | 구현 | L3-E·L3-D | 4 | CPU-08, GPU-03, GPU-04, GPU-07 |
+| `device.startup` | perfkit/device | 구현 | L3-E·L3-D | 1 | BLD-10 |
+| `device.sys_load` | perfkit/device | 구현 | L3-E·L3-D | 1 | AUX-03 |
+| `device.thermal` | perfkit/device | 구현 | L3-D | 2 | THM-01, THM-02 |
+| `device.unity_memory` | perfkit/device | 구현 | L3-E·L3-D | 4 | CPU-03, CPU-04, MEM-04, MEM-05 |
+| `editor.device_profile` | perfkit/editor | 예정 | L3-D | 6 | FRM-04, CPU-01, CPU-05, CPU-07, CPU-09, CPU-13 |
+| `editor.frame_debugger` | perfkit/editor | 구현 | L2 | 5 | GPU-05, GPU-06, GPU-11, GPU-21, GPU-22 |
+| `editor.memory_snapshot` | perfkit/editor | 예정 | L3-D | 9 | MEM-06, MEM-07, MEM-11, MEM-12, MEM-13, MEM-14, MEM-15, MEM-16, MEM-17 |
+| `editor.play_counters` | perfkit/editor | 구현 | L2 | 5 | CPU-02, CPU-09, GPU-03, GPU-04, GPU-07 |
+| `editor.play_events` | perfkit/editor | 구현 | L2 | 1 | CPU-15 |
+| `editor.play_profile` | perfkit/editor | 구현 | L2 | 6 | CPU-01, CPU-07, CPU-11, CPU-12, MEM-10, THM-06 |
+| `editor.render_debug` | perfkit/editor | 구현 | L2 | 4 | GPU-09, GPU-18, GPU-19, GPU-24 |
+| `run.conditions` | perfkit/run | 예정 | L3-D | 1 | THM-07 |
+| `static.addressables_dupes` | perfkit/static | 에디터 합침 | L0 | 1 | MEM-09 |
+| `static.auditor_code` | perfkit/static | 구현 | L0 | 6 | SCR-01, SCR-02, SCR-03, SCR-04, SCR-06, SCR-07 |
+| `static.auditor_settings` | perfkit/static | 구현 | L0 | 1 | SCR-09 |
+| `static.import_rules` | perfkit/static | 구현 | L0 | 20 | AST-01, AST-02, AST-03, AST-04, AST-05, AST-06, AST-07, AST-08, AST-09, AST-10, AST-11, AST-12, AST-13, AST-14, AST-15, AST-16, AST-17, AST-18, AST-19, AST-20 |
+| `static.project_settings` | perfkit/static | 구현 | L0 | 14 | FRM-05, CPU-03, CPU-06, CPU-08, CPU-13, CPU-14, MEM-15, BLD-04, BLD-06, BLD-07, BLD-08, BLD-09, BLD-13, THM-04 |
+| `static.render_assets` | perfkit/static | 구현 | L0 | 4 | GPU-05, GPU-10, GPU-11, GPU-14 |
+| `static.source_scan` | perfkit/static | 구현 | L0 | 3 | SCR-05, SCR-08, GPU-18 |
+| `static.ui_scan` | perfkit/static | 에디터 합침 | L0 | 2 | CPU-10, THM-06 |
+| `static.urp_settings` | perfkit/static | 구현 | L0 | 7 | GPU-06, GPU-12, GPU-17, GPU-19, GPU-20, GPU-21, GPU-23 |
 
-매니페스트에 이름만 있고 아직 수집 코드가 없는 수집기도 있습니다(README 「한계」). 그 항목은 결과에 `not_collected`로 남습니다.
+「상태」 칸: **구현**은 perfkit 안에 수집 코드가 있는 것, **에디터 합침**은 perfkit 혼자 값을 못 내고 프로젝트 안 에디터 도구의 JSON을 `static --editor`가 합치는 것, **예정**은 매니페스트에 이름만 있고 아직 코드가 없는 것입니다. 예정 수집기의 항목은 결과에 `not_collected`로 남습니다. 상태 목록은 `perfkit/collectors.py`의 `EDITOR_MERGED`·`PLANNED`입니다.

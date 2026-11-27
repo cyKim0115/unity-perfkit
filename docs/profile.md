@@ -14,8 +14,10 @@ perfkit 코드에는 프로젝트 고유 값도, PC 고유 값도 넣지 않습�
 
 환경 변수(`PERFKIT_*`) → 사용자 설정 → 프로젝트 프로필 → 기본값. 앞이 이깁니다. 설정 파일 안의 상대 경로는 그 파일이 있는 폴더 기준입니다.
 
+경로 값에는 `~`(홈)와 환경 변수(`$VAR`·`${VAR}`, Windows는 `%VAR%`도)를 쓸 수 있습니다. 대상: 설정 키의 경로, 프로필의 `[static] project`, `[run] saves_dir`·`build_info`, `[baseline] dir`, `[report] css`, `[build]`의 `command` 인자·`state_glob`·`log`·`layout`·`cache`. PC마다 다른 위치는 환경 변수나 프로필 옆 상대 경로로 적으면 같은 프로필을 여러 PC에서 고치지 않고 씁니다. 펼칠 환경 변수가 없으면 글자 그대로 남으므로(예: `${MY_GAME_PROJECT}`) `config show`·오류 문구에서 바로 보입니다.
+
 ```
-python -m perfkit config init     # 사용자 설정을 예시(config/config.example.toml)로 만든다
+python -m perfkit config init     # 사용자 설정을 예시(config/config.example.toml)로 만든다. 줄은 모두 주석이라 필요한 줄만 푼다
 python -m perfkit config show     # 값과 출처(env·user·profile·default)
 python -m perfkit config keys     # 키와 환경 변수 표
 ```
@@ -94,6 +96,8 @@ csv_stable_s = 2.0
 logcat_buffer = "16M"
 extra_args = ""                      # 게임 실행 인자 덧붙이기
 scene_load_phases = ["load_scene_begin", "load_scene_end"]
+count_phases = ["near", "far"]       # GPU-03·04·07 근경·원경 단계 이름(지표 키 _near·_far는 그대로)
+capture_start_phases = ["near", "far", "popups", "pan-far"]  # 프로파일러 캡처 요약 시작 단계(먼저 보이는 것)
 cold_start_count = 10
 
 [host]                               # 호스트 유휴 측정
@@ -159,7 +163,7 @@ css = "theme.css"                    # 보고 테마(기본: 저장소 perfkit/r
 
 # ---- 커밋·APK 비교에 쓰는 빌드
 [build]
-command = ["python", "tools/build_android.py", "--commit", "{commit}"]
+command = ["python", "{profile_dir}/tools/build_android.py", "--commit", "{commit}"]
 state_glob = "builds/*/build.json"
 timeout_min = 40
 
@@ -204,7 +208,7 @@ sysfs 경로는 기기마다 다릅니다. `perfkit device doctor --device <이�
 
 | 칸 | 뜻 |
 |---|---|
-| `command` | 빌드 명령(목록). 자리: `{commit}` `{commit8}` `{label}` |
+| `command` | 빌드 명령(목록). 자리: `{commit}` `{commit8}` `{label}` `{profile_dir}`(프로필 폴더). 인자마다 `~`·환경 변수를 펼침. 명령은 현재 폴더에서 돌므로 프로필 옆 스크립트는 `{profile_dir}`로 가리킴 |
 | `state_glob` | 빌드가 남기는 결과 JSON glob. 필수 칸 `commit`, `file`(APK 경로) |
 | `log`·`layout` | (선택) L1에 쓸 빌드 로그·Addressables 레이아웃. 자리 `{state_dir}` |
 | `cache` | 커밋 → APK 색인(기본 `<결과 폴더>/build-cache.json`) |
@@ -218,7 +222,18 @@ sysfs 경로는 기기마다 다릅니다. `perfkit device doctor --device <이�
 
 ## static: 정적 점검
 
-`[static]`의 범위·전처리 기호·임포트 문턱은 위 예시대로입니다. 프로젝트 폴더가 PC마다 다르면 사용자 설정 `[static] project`로 덮습니다.
+`[static]`의 범위·전처리 기호·임포트 문턱은 위 예시대로입니다. 프로젝트 폴더가 PC마다 다르면 `project = "${MY_GAME_PROJECT}"`처럼 환경 변수로 적거나, 사용자 설정 `[static] project`·환경 변수 `PERFKIT_STATIC_PROJECT`·`static --project`로 덮습니다.
+
+## 이 PC 전용 도구 없이 쓰기
+
+perfkit은 임대 도구·빌드 도구를 부르기만 하고 없어도 돕니다.
+
+| 없는 것 | 대신 |
+|---|---|
+| 에뮬레이터 임대 도구(`emu-lab`) | 기기 정의 `lease = "none"` 또는 `run`에 `--no-lease`. 에뮬레이터는 직접 띄워 두고 `device doctor`로 확인 |
+| 빌드 명령(`[build]`) | APK를 직접 뽑아 `run --apk`, `run abab --a … --b …`, `compare --base-apk … --cand-apk …`로 줌. 커밋 메타는 APK 옆 빌드 정보 JSON(`[run] build_info`)에서 읽고, 없으면 비어 있음 |
+| 에디터 쪽 도구 | `static`은 에디터 없이 소스·설정만 보고, 에디터가 필요한 항목은 「수집 못 함」. L2(`editor`)는 쓰지 않음 |
+| 결과 폴더 설정 | 명령마다 `--out`. 기준선·비교 색인을 쓰려면 `paths.results`가 필요 |
 
 ## 어디에 두나
 

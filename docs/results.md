@@ -61,6 +61,7 @@
 | `logcat_restarts`·`end_signal` | logcat 재연결 수, 끝 신호(`end`·`csv`·`compat`·`app_exit`…) |
 | `valid`·`invalid_reason` | 관문 결과 |
 | `game`·`end` | 게임이 BEGIN·END에 적은 값 |
+| `probe_warnings` | 측정 모드가 찍은 경고 줄(`[PerfProbeArgs] …`, 모르는 인자·범위 밖 값). 없으면 칸 없음 |
 | `unity_args`·`tool`·`timing` | 넘긴 인자, perfkit·adb 정보, 걸린 시간 |
 
 무효 회차도 폴더는 남습니다. 판정에서 빼는 것은 `compare`가 합니다.

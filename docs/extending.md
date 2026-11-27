@@ -30,7 +30,7 @@ config/
   config.example.toml    사용자 설정 예시
   profile.example.toml   프로젝트 프로필 예시
   devices/               기기 preset: SoC별 sysfs 경로·식힘·prep 기본값
-examples/           스키마 예시
+examples/           스키마 예시, claude-skill/(Claude Code 스킬 틀)
 tests/              python -m unittest(가짜 adb·익명화 표본, 기기 없이 돎)
 ```
 

@@ -176,7 +176,7 @@ python -m perfkit compare --runs session:<위에서 나온 세션> --split arm -
 
 ## 프로젝트 프로필
 
-프로젝트마다 TOML 파일 하나를 게임 저장소 쪽에 두고, 사용자 설정의 `profile`로 가리킵니다. 값은 환경 변수 → 사용자 설정 → 프로필 → 기본값 순으로 찾습니다.
+프로젝트마다 TOML 파일 하나를 게임 저장소 쪽에 두고, 사용자 설정의 `profile`로 가리킵니다. 값은 환경 변수 → 사용자 설정 → 프로필 → 기본값 순으로 찾습니다. 경로에는 `~`와 환경 변수(`${VAR}`)를 쓸 수 있고 상대 경로는 프로필 폴더 기준이라, PC마다 다른 위치를 환경 변수로 적으면 같은 프로필을 여러 PC에서 씁니다. 임대 도구·빌드 명령 없이 쓰는 법은 [설정과 프로젝트 프로필](docs/profile.md#이-pc-전용-도구-없이-쓰기).
 
 ```toml
 name = "my-game"
@@ -227,7 +227,7 @@ perf-results/
 perfkit은 Unity를 직접 부르지 않습니다. 기기 회차에서는 게임이 아래를 지켜야 합니다.
 
 - **실행 인자**: perfkit이 `am start … -e unity '<인자>'`로 `-perfScenario <이름> -perfSeconds <초> -perfSeed <n> -perfSave <세이브> -perfRunId <id> -perfQuit 0 [-perfFreeze 0|1]`을 넘깁니다. 게임은 `-perfScenario`가 있으면 측정 모드로 들어갑니다.
-- **로그 마커**: `[PerfRun] BEGIN|PHASE|EVENT|END … json={…}`(한 줄 JSON)과 1초마다 `[PerfStats] …` 줄. 측정할 단계는 PHASE `measure:true`로 표시하고, 그리기 수 지표에는 `near`·`far` 단계가 필요합니다.
+- **로그 마커**: `[PerfRun] BEGIN|PHASE|EVENT|END … json={…}`(한 줄 JSON)과 1초마다 `[PerfStats] …` 줄. 측정할 단계는 PHASE `measure:true`로 표시하고, 그리기 수 지표에는 근경·원경 단계(기본 이름 `near`·`far`, 프로필에서 바꿈)가 필요합니다.
 - **프레임 CSV**: 프레임마다 한 줄을 모아 끝날 때 `<files>/perf/<runId>.csv`에 한 번에 씁니다(`frame,tReal,tGame,phase,dtMs,cpuMs,mainMs,renderMs,…`).
 - **결정성**: 같은 세이브·같은 씨에서 시작하고, 캐릭터 배회·시간 사건처럼 측정 중 저절로 바뀌는 장면 상태를 고정(이동 잠금 등)합니다. 회차마다 그려지는 것이 다르면 그 차이가 그대로 잡음이 되거나 상태 섞임으로 판단 보류가 납니다. 로딩이 끝난 뒤 `settle` 단계에서 품질 설정(그래픽 등급·목표 FPS·vSync·해상도)을 적습니다.
 - **측정 코드 판**: BEGIN의 `probeHash`. 측정 방식이 바뀌면 이 값을 바꾸고, 판이 다른 회차끼리는 비교가 무효입니다. 측정 코드를 바꾸면 기준선을 다시 잽니다.
@@ -248,10 +248,10 @@ Log($"[PerfRun] END runId={runId} result=ok json={{\"result\":\"ok\"}}");
 
 - **에뮬레이터 지표**: 절대값은 의미가 없고 변화만 봅니다. 발열·GPU 클럭·GPU 사용량·배터리·전력·GPU 시간·GPU 하드웨어 카운터는 재지 않습니다. 에뮬레이터 잡음 등급은 처음에 모두 `pending_aa`라, 프로젝트가 A/A를 재고 프로필에서 채우기 전에는 L3-E 항목 판정이 보류됩니다. 호스트 부하에 민감합니다.
 - **릴리스 빌드에서 안 나오는 값**: 프레임별 GC 할당(`GC Allocated In Frame`)은 개발 빌드에서만 나옵니다. 릴리스에서는 Mono 힙 증가분으로 대신하며 하한값입니다. Draw Calls·Batches 카운터는 빌드에 따라 못 읽을 수 있고(그 항목은 「수집 못 함」), GC 수집 시간·Total Reserved 메모리는 측정 모드 로그로 못 잽니다. 기기 프로파일러 캡처는 개발 빌드에서만 됩니다.
-- **수집기가 아직 없는 항목**: 매니페스트에 이름만 있는 수집기가 있습니다(`console.vitals`, `device.exit_info`, `device.gpu_counters`, `device.power`, `device.probe_state`, `editor.device_profile`, `editor.memory_snapshot`, `run.conditions`). GPU-13(Mali Offline Compiler)도 연결하지 않았습니다. 이 항목들은 「수집 못 함」으로 남습니다.
+- **수집기가 아직 없는 항목**: 매니페스트에 이름만 있는 수집기가 9개 있습니다(`console.vitals`, `device.exit_info`, `device.gpu_counters`, `device.power`, `device.probe_state`, `editor.device_profile`, `editor.memory_snapshot`, `run.conditions`, GPU-13의 `build.malioc`). `manifest collectors`에 「예정」으로 나오고, 이 항목들은 「수집 못 함」으로 남습니다.
 - **표준 라이브러리 통계**: 부트스트랩·Wilcoxon·Mann-Whitney·Spearman을 직접 구현했습니다(작은 표본은 정확 분포, 큰 표본은 근사). 범용 통계 패키지로 교차 검증한 것은 아닙니다.
 - **정적 점검(L0)**: C# 소스를 정규식과 메서드 범위로 검사합니다. 호출 그래프는 따라가지 않아 Update가 부르는 함수 안은 「매 프레임」으로 보지 않습니다. Project Auditor와 수가 다를 수 있습니다.
-- **시나리오 이름 가정**: 그리기 수 지표는 `near`·`far` 단계 이름을, UI 열기 히치는 `EVENT kind=ui_open`을 기대합니다.
+- **시나리오 이름 가정**: 그리기 수 지표는 근경·원경 단계 이름(기본 `near`·`far`, 프로필 `[run] count_phases`로 바꿈)을, UI 열기 히치는 `EVENT kind=ui_open`을 기대합니다(이벤트 종류는 바꿀 수 없음).
 - **범위**: 기기 회차는 Android(adb)만 됩니다. L2와 에디터 점검 합치기에 쓰는 에디터 쪽 도구는 이 저장소에 없습니다(형식만 정합니다).
 - **언어**: 명령 도움말, 매니페스트 문구, `docs/` 문서는 한국어입니다.
 
@@ -268,6 +268,7 @@ Log($"[PerfRun] END runId={runId} result=ok json={{\"result\":\"ok\"}}");
 | [결과 폴더](docs/results.md) | 폴더 구조, 회차 폴더, 스키마, 색인, 보고 |
 | [모듈 더하기](docs/extending.md) | 저장소 구조, 명령·수집기 더하기, 테스트 |
 | [매니페스트 변경 기록](manifest/CHANGES.md) | 기준값·항목 변경 |
+| [Claude Code 스킬 틀](examples/claude-skill/README.md) | 에이전트가 perfkit을 금지·관문·세 흐름 순서로 돌리게 하는 `SKILL.md` 틀 |
 
 ## 라이선스
 

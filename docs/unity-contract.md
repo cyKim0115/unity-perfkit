@@ -25,7 +25,7 @@ perfkit은 `am start -W -n <패키지>/<액티비티> -e unity '<인자>'`로 �
 
 `<files>`는 기본 `/sdcard/Android/data/<패키지>/files`(`Application.persistentDataPath`와 같은 곳)이고 프로필 `[run] remote_files`로 바꿉니다. 측정 폴더는 `<files>/perf`(`remote_perf_dir`)입니다.
 
-인자를 읽다 문제가 있으면(모르는 값, 범위 밖) `[PerfProbeArgs] …` 줄로 남깁니다. 이 줄은 앱 경고 집계(STB-09)에서 빠지고 `logcat.txt`에 그대로 남습니다. 무시한 인자는 BEGIN의 `ignored` 칸에도 적습니다.
+인자를 읽다 문제가 있으면(모르는 값, 범위 밖) `[PerfProbeArgs] …` 줄로 남깁니다. 이 줄은 앱 경고 집계(STB-09)에서 빠지고 `logcat.txt`와 회차 `meta.json`의 `probe_warnings`에 남습니다. 무시한 인자는 BEGIN의 `ignored` 칸에도 적습니다.
 
 ## 로그 마커
 
@@ -67,7 +67,7 @@ perfkit은 `am start -W -n <패키지>/<액티비티> -e unity '<인자>'`로 �
 |---|---|
 | `load_*` | 로드 단계(예: `load_boot`, `load_scene_begin`, `load_scene_end`, `load_game_ready`). `measure:false`. 마지막 `load_*`의 `t`가 첫 화면까지 시간(BLD-11), 이웃 단계 차가 로드 구간(STB-11·AUX-04). 씬 로드 구간은 프로필 `[run] scene_load_phases`의 두 단계 사이(CPU-15) |
 | `settle` | 로딩이 끝나고 장면을 고정한 뒤 한 번. `measure:false`. json에 `graphics`·`targetFps`·`vSync`·`quality`·`screen`을 넣으면 perfkit이 이 다섯 칸으로 **품질 설정 해시**(`quality_hash`)를 만듭니다. 그 밖의 칸(`freeze`, 장면 안 개수, 카메라 위치 등)은 기록용 |
-| 측정 단계 | `measure:true`. 지표는 이 단계의 프레임만으로 냅니다. 이름은 자유지만 **`near`·`far`** 단계가 있어야 그리기 수 지표(GPU-03·04·07: 가까운·먼 구도)가 나옵니다 |
+| 측정 단계 | `measure:true`. 지표는 이 단계의 프레임만으로 냅니다. 이름은 자유지만 근경·원경 단계가 있어야 그리기 수 지표(GPU-03·04·07: 가까운·먼 구도)가 나옵니다. 기본 이름은 **`near`·`far`**이고 프로필 `[run] count_phases`로 바꿉니다 |
 | `end` | (선택) 측정 끝 |
 
 ### EVENT

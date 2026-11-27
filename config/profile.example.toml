@@ -1,6 +1,8 @@
 # perfkit 프로젝트 프로필 예시. 실제 프로필은 프로젝트 쪽(저장소 밖)에 두고 사용자 설정의 profile로 가리킨다.
 # 프로젝트 고유 값(패키지 이름, 기기 정의, 시나리오, 결과 위치, 기준값 덮어쓰기, 실측 메모)은 여기에만 둔다.
-# 상대 경로는 이 파일이 있는 폴더 기준이다.
+# 상대 경로는 이 파일이 있는 폴더 기준이다. `~`(홈)와 환경 변수(`${VAR}`, Windows는 `%VAR%`도)를 쓸 수 있다.
+# PC마다 다른 위치(Unity 프로젝트, 빌드 도구, 빌드 출력)는 환경 변수나 이 파일 옆 상대 경로로 적으면
+# 같은 프로필을 여러 PC에서 그대로 쓸 수 있다.
 
 name = "example-game"
 
@@ -40,11 +42,15 @@ gpu_mode = "host"
 resolution = "1080x2400"
 arm_translation = true
 
-# (선택) perfkit run 회차 공통. 자세한 칸은 README 「기기 회차」
+# (선택) perfkit run 회차 공통. 자세한 칸은 docs/profile.md·docs/layers.md
 [run]
 saves_dir = "saves"            # <saves_dir>/<세이브 이름>/*를 기기에 넣는다
 seconds = 60
 sample_interval_s = 5.0
+# build_info = "{apk_dir}/build-info.json"     # APK 옆 빌드 정보 JSON(자리: {apk_dir} {apk_dir_name} {apk_stem})
+# count_phases = ["near", "far"]               # GPU-03·04·07 근경·원경 단계 이름(게임 측정 모드의 PHASE 이름)
+# capture_start_phases = ["near", "far"]       # 프로파일러 캡처 요약을 시작할 단계(먼저 보이는 것)
+# scene_load_phases = ["load_scene_begin", "load_scene_end"]  # CPU-15 씬 로드 구간
 
 # 시나리오(게임 쪽 측정 모드가 받는 이름)
 [[scenarios]]
@@ -57,9 +63,10 @@ id = "find_object_of_type"
 pattern = "FindObjectOfType"
 note = "참조를 캐시한다"
 
-# (선택) L0 정적 점검(perfkit static). project는 PC마다 다르면 사용자 설정 [static] project로 덮는다.
+# (선택) L0 정적 점검(perfkit static). project는 PC마다 다르면 환경 변수로 적거나
+# 사용자 설정 [static] project·환경 변수 PERFKIT_STATIC_PROJECT·--project로 덮는다.
 [static]
-project = "<Unity 프로젝트 폴더>"
+project = "${MY_GAME_PROJECT}"
 source_dirs = ["Assets/Scripts"]
 asset_dirs = ["Assets"]
 exclude = ["Assets/ThirdParty/**"]
@@ -67,10 +74,16 @@ exclude = ["Assets/ThirdParty/**"]
 [static.import]
 texture_size_limit = 2048
 
-# (선택) CPU-15 이벤트 히치 대상
-[[events]]
-id = "ui_open"
-note = "UI 열기"
+# (선택) compare --base-commit·--cand-commit이 쓰는 빌드 명령. 없으면 --base-apk·--cand-apk로 APK를 직접 준다.
+# 자리: {commit} {commit8} {label} {profile_dir}. 인자마다 `~`·환경 변수를 펼친다.
+# [build]
+# command = ["${MY_BUILD_TOOL}", "--commit", "{commit}", "--out", "{profile_dir}/builds/{commit8}"]
+# state_glob = "builds/*/build-info.json"     # 빌드가 남기는 JSON(칸: commit, file=APK 경로). 상대 경로는 이 파일 기준
+# timeout_min = 40
+
+# (선택) 보고 HTML 색(CSS 파일). 없으면 내장 색.
+# [report]
+# css = "theme.css"
 
 # 항목별 메모(공개 매니페스트에 넣지 않는 실측·설명). 항목에 project_note로 붙는다.
 [notes]
