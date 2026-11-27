@@ -48,6 +48,15 @@ LAYER_PACKAGES = {
     "console": {"console"},
 }
 
+# 등록되지 않은 이름의 상태. `manifest collectors`가 「구현」 대신 이 표시를 쓴다.
+# - 에디터 합침: perfkit 혼자서는 값을 못 내고, 프로젝트 안 에디터 도구의 JSON을 `static --editor`가 합친다.
+# - 예정: 매니페스트에 이름만 있고 아직 코드가 없다. 그 항목은 결과에 「수집 못 함」으로 남는다.
+EDITOR_MERGED = frozenset({"static.ui_scan", "static.addressables_dupes"})
+PLANNED = frozenset({
+    "build.malioc", "console.vitals", "device.exit_info", "device.gpu_counters", "device.power",
+    "device.probe_state", "editor.device_profile", "editor.memory_snapshot", "run.conditions",
+})
+
 _REGISTRY: dict[str, Callable] = {}
 
 
@@ -91,6 +100,18 @@ def get(name: str) -> Callable | None:
     if name not in _REGISTRY:
         load_packages()
     return _REGISTRY.get(name)
+
+
+def status_of(name: str, registry: dict | None = None) -> str:
+    """구현 · 에디터 합침 · 예정 · 미구현(이름도 목록에도 없음)."""
+    reg = registered() if registry is None else registry
+    if name in reg:
+        return "구현"
+    if name in EDITOR_MERGED:
+        return "에디터 합침"
+    if name in PLANNED:
+        return "예정"
+    return "미구현"
 
 
 def registered() -> dict[str, Callable]:

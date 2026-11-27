@@ -341,6 +341,7 @@ def collector_table(m: Manifest) -> list[dict]:
             "layers": [l for l in LAYERS if l in row["layers"]],
             "items": row["items"],
             "implemented": name in reg,
+            "status": collectors.status_of(name, reg),
         })
     return out
 
@@ -348,15 +349,17 @@ def collector_table(m: Manifest) -> list[dict]:
 def _cmd_collectors(args) -> int:
     rows = collector_table(_load_arg(args))
     if args.markdown:
-        print("| 수집기 | 구현 패키지 | 층 | 항목 수 | 항목 |")
-        print("|---|---|---|---|---|")
+        print("| 수집기 | 구현 패키지 | 상태 | 층 | 항목 수 | 항목 |")
+        print("|---|---|---|---|---|---|")
         for r in rows:
-            print(f"| `{r['name']}` | {r['owner']} | {'·'.join(r['layers'])} | {len(r['items'])} | {', '.join(r['items'])} |")
+            print(f"| `{r['name']}` | {r['owner']} | {r['status']} | {'·'.join(r['layers'])} | {len(r['items'])} | "
+                  f"{', '.join(r['items'])} |")
     else:
         for r in rows:
-            flag = "구현" if r["implemented"] else "미구현"
-            print(f"{r['name']:28} {r['owner']:6} {flag:4} {'/'.join(r['layers']):18} {len(r['items']):3}  {' '.join(r['items'])}")
-    print(f"# 수집기 {len(rows)}개, 구현 {sum(r['implemented'] for r in rows)}개", file=sys.stderr)
+            print(f"{r['name']:28} {r['owner']:15} {r['status']:6} {'/'.join(r['layers']):12} {len(r['items']):3}  "
+                  f"{' '.join(r['items'])}")
+    counts = {k: sum(1 for r in rows if r["status"] == k) for k in ("구현", "에디터 합침", "예정", "미구현")}
+    print(f"# 수집기 {len(rows)}개: " + ", ".join(f"{k} {v}" for k, v in counts.items() if v), file=sys.stderr)
     return 0
 
 
