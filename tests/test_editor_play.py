@@ -159,6 +159,60 @@ class EditorPlayTest(unittest.TestCase):
             self.assertEqual(resultio.read(Path(td) / "ab.l2.json")["source"]["runs"], 2)
 
 
+class EditorPlayDirtyTest(unittest.TestCase):
+    def _repo(self, td):
+        import subprocess
+
+        def git(*a):
+            subprocess.run(["git", "-C", str(td), *a], check=True, capture_output=True)
+        git("init", "-q")
+        git("config", "user.email", "t@example.invalid")
+        git("config", "user.name", "t")
+        (Path(td) / "a.txt").write_text("1", encoding="utf-8")
+        (Path(td) / "noise.meta").write_text("1", encoding="utf-8")
+        git("add", "a.txt", "noise.meta")
+        git("commit", "-q", "-m", "init")
+        return subprocess.run(["git", "-C", str(td), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+    def test_tree_state(self):
+        from perfkit.editor.play import tree_state
+
+        with tempfile.TemporaryDirectory() as td:
+            head = self._repo(td)
+            self.assertFalse(tree_state(td, commit=head)["dirty"])
+            (Path(td) / "new.txt").write_text("x", encoding="utf-8")          # 새 파일은 안 봄
+            self.assertFalse(tree_state(td, commit=head)["dirty"])
+            (Path(td) / "noise.meta").write_text("2", encoding="utf-8")
+            st = tree_state(td, commit=head)
+            self.assertTrue(st["dirty"])
+            self.assertEqual(st["paths"], ["noise.meta"])
+            st = tree_state(td, commit=head, ignore=["*.meta"])
+            self.assertFalse(st["dirty"])
+            self.assertEqual((st["changed"], st["ignored"]), (1, 1))
+            st = tree_state(td, commit="0" * 40, ignore=["*.meta"])           # HEAD가 결과 커밋과 다름
+            self.assertTrue(st["dirty"])
+            self.assertTrue(st["head_mismatch"])
+
+    def test_cli_tree_and_merge(self):
+        with isolated_settings(), tempfile.TemporaryDirectory() as td:
+            head = self._repo(td)
+            pa = Path(td) / "a.json"
+            pa.write_text(json.dumps(play(commit=head)), encoding="utf-8")
+            out = Path(td) / "a.l2.json"
+            rc, text = cli_run(["editor", "play", str(pa), "--out", str(out), "--tree", td])
+            self.assertEqual(rc, 0, text)
+            self.assertIn("dirty=no", text)
+            src = resultio.read(out)["source"]
+            self.assertEqual((src["dirty"], src["tree"]["head"]), (False, head))
+            (Path(td) / "a.txt").write_text("2", encoding="utf-8")
+            rc, text = cli_run(["editor", "play", str(pa), "--out", str(out), "--tree", td])
+            self.assertIn("dirty=yes", text)
+            self.assertEqual(resultio.read(out)["source"]["tree"]["paths"], ["a.txt"])
+        rs = [to_result(dict(play(), dirty=d), ref=f"r{i}.json") for i, d in enumerate((False, True))]
+        self.assertTrue(merge_runs(rs, ["r0.json", "r1.json"])["source"]["dirty"])
+        self.assertNotIn("dirty", to_result(play(), ref="r.json")["source"])
+
+
 class EditorProfileTest(unittest.TestCase):
     def test_summary_and_bottleneck(self):
         p = profile()

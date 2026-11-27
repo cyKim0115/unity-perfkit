@@ -185,6 +185,7 @@ Unity 에디터 Play에서 같은 시나리오를 돌려 모은 값을 L2 결과
 ```
 python -m perfkit editor play <play.json> [--out <L2.json>]          에디터 Play 원값 → L2 결과(result 스키마)
 python -m perfkit editor play <a.json> <b.json> <c.json> --out <L2.json>   같은 조건 회차를 묶음(지표가 회차별 값 목록)
+python -m perfkit editor play <a.json>… --out <L2.json> --tree <작업 트리> [--dirty-ignore <틀>]   작업 트리 HEAD·변경(dirty) 기록
 python -m perfkit diff <기준 L2.json> <후보 L2.json> [--fail-on warn]     L2 두 결과 비교(잡음 등급 규칙)
 python -m perfkit editor profile <요약.json> [--top 20]               프로파일러 캡처 요약 보기(상위 마커, FRM-04 판별)
 python -m perfkit editor memory <비교.json> [--out <요약.json>]        메모리 스냅숏 비교 요약(MEM-06·07 참고값)
@@ -195,6 +196,7 @@ python -m perfkit run --device <기기> --apk <개발 빌드 APK> --scenario <�
 - 기본 저장 위치: 결과 폴더의 `editor/<날짜>-<커밋8>/<이름>.l2.json`.
 - GC(CPU-02)·UI 마커(CPU-09)는 프로파일러 캡처에서 읽는다(게임 루프만). 에디터의 `GC Allocated In Frame` 카운터는 에디터 루프 할당이 섞여 쓰지 않는다.
 - 회차 하나끼리 diff하면 잡음 「중간」 항목(CPU-15 등)은 기준 회차가 모자라 「판단 보류」다. 회차 셋 이상을 `editor play a b c`로 묶어 비교한다.
+- `--tree`: 측정한 작업 트리의 HEAD와 추적 파일 변경(`git status`, 새 파일 제외)을 `source.tree`에, 변경이 남거나 HEAD가 결과 커밋과 다르면 `source.dirty=true`. 에디터가 늘 다시 쓰는 파일은 `--dirty-ignore`(fnmatch)로 뺀다. 변환 시점에 읽으므로 측정 직후에 부른다.
 - Frame Debugger가 실패한 회차는 GPU-05·22와 GPU-21 `post_passes`가 「수집 못 함: 이유」로 남는다.
 
 프로파일러 캡처 요약 `perfkit/editor-profile@1`: `frameMs`(분포)·`frameMsHistogram`, `topSelf`(자기 시간 상위 마커), `gcAllocCallsPerFrame`·`gcAllocBytesPerFrame`, `markers`(지켜보는 마커 포함 시간), `bottleneckPct`(FRM-04). 기기 개발 빌드 캡처(`run --capture profiler`)와 에디터 구도 캡처가 같은 형식이다.
@@ -322,13 +324,14 @@ busy_files = []                        # 있으면 시작하지 않을 잠금 �
 ```
 python -m perfkit compare --base <SPEC> --cand <SPEC> [--noise <기준선|noise.json>] [--report] [--fail-on warn|fail|worse]
 python -m perfkit compare --runs <SPEC> --split arm|alternate|half      한 묶음을 나눠 비교(ABAB의 A·B, A/A 점검)
-python -m perfkit baseline register --name <이름> --runs <SPEC> [--noise-runs <A/A SPEC>] [--l0 결과] [--l1 결과] [--force]
+python -m perfkit baseline register --name <이름> --runs <SPEC> [--noise-runs <A/A SPEC>] [--l0 결과] [--l1 결과] [--l2 결과] [--force]
 python -m perfkit baseline list | show <이름>
 python -m perfkit noise aa --runs <A/A SPEC> [--target 5] [--out noise.json]
 python -m perfkit report <비교.json|결과.json> [--out 보고.html] [--css 테마.css]
 python -m perfkit index rebuild | check
 ```
 
+- `baseline register --l2`: L2 결과(`editor play` 묶음)를 기준선의 `editor.L2` 칸에 둔다(회차 수·커밋·측정 코드 해시·시나리오·dirty). L2는 결정적 층이 아니라 `deterministic`과 따로 두고, `baseline:<이름>`을 비교 한쪽으로 쓸 때는 읽지 않는다. 비교는 `perfkit diff <ref> <후보 L2>`.
 - SPEC: `session:<이름>`(회차 메타 `session`), `baseline:<이름>`, `run:<id,…>`, 회차 폴더나 그 부모 폴더, L0·L1 결과 파일. `--base`·`--cand`는 여러 번 줄 수 있고, 결과 파일과 회차 묶음을 함께 주면 층마다 하나씩 `perfkit/comparison-set@1`로 묶는다(각 부분은 comparison 스키마).
 - 회차 폴더: `<결과 폴더>/runs/<run_id>/meta.json`(run-meta) + `result.json`(result, 같은 run_id). 나머지 원자료 파일은 색인의 artifact로만 잡힌다.
 - 비교 결과 기본 저장: `<결과 폴더>/comparisons/<시각>-<기준>-vs-<후보>.json`(`--report`면 옆에 .html).

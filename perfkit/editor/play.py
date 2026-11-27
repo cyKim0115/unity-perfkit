@@ -254,6 +254,8 @@ def to_result(play: dict, *, ref: str) -> dict:
     commit = play.get("commit")
     if commit and all(ch in "0123456789abcdef" for ch in commit.lower()) and 7 <= len(commit) <= 40:
         src["commit"] = commit.lower()
+    if isinstance(play.get("dirty"), bool):
+        src["dirty"] = play["dirty"]
     begin = ((cam or {}).get("begin") or {})
     for k, out_k in (("probeHash", "probe_hash"), ("saveHash", "save_hash"), ("probeVersion", "probe_version")):
         v = (cam or {}).get(k) or begin.get(k)
@@ -274,13 +276,49 @@ def to_result(play: dict, *, ref: str) -> dict:
     return result
 
 
+def tree_state(tree, *, commit: str | None = None, ignore: list[str] | None = None) -> dict:
+    """측정한 작업 트리의 지금 상태: HEAD와 추적 파일 변경(새 파일은 보지 않음).
+
+    `dirty`는 `ignore`(fnmatch 틀)에 걸리지 않는 변경이 있거나 HEAD가 결과의 커밋과 다를 때 참이다.
+    변환 시점에 읽으므로 측정 직후(작업 트리를 바꾸기 전)에 부른다."""
+    import fnmatch
+    import subprocess
+
+    def git(*a):
+        r = subprocess.run(["git", "-C", str(tree), *a], capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=60)
+        if r.returncode != 0:
+            raise EditorPlayError(f"git {' '.join(a)} 실패({tree}): {r.stderr.strip()[:200]}")
+        return r.stdout
+
+    head = git("rev-parse", "HEAD").strip().lower()
+    changed = []
+    for line in git("status", "--porcelain", "--untracked-files=no").splitlines():
+        path = line[3:].strip().strip('"')
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if path:
+            changed.append(path)
+    pats = list(ignore or [])
+    kept = [c for c in changed if not any(fnmatch.fnmatch(c, pt) for pt in pats)]
+    mismatch = bool(commit) and not head.startswith(commit.lower()) and not commit.lower().startswith(head)
+    out = {"head": head, "dirty": bool(kept) or mismatch, "changed": len(changed), "ignored": len(changed) - len(kept),
+           "paths": kept[:50]}
+    if pats:
+        out["ignore"] = pats
+    if mismatch:
+        out["head_mismatch"] = True
+    return out
+
+
 def summary_lines(result: dict) -> list[str]:
     it = result["items"]
     ok = [k for k, v in it.items() if v["status"] == "ok"]
     nc = {k: v.get("reason") for k, v in it.items() if v["status"] != "ok"}
     basic_ok = [k for k in BASIC if k in ok]
     lines = [f"layer=L2 items={len(it)} ok={len(ok)} basic={len(basic_ok)}/{len(BASIC)} "
-             f"commit={(result['source'].get('commit') or '-')[:12]} probe={result['source'].get('probe_hash', '-')}"]
+             f"commit={(result['source'].get('commit') or '-')[:12]} probe={result['source'].get('probe_hash', '-')}"
+             + (f" dirty={'yes' if result['source']['dirty'] else 'no'}" if 'dirty' in result['source'] else "")]
     for k in BASIC + DEEP:
         v = it.get(k)
         if not v:
@@ -315,6 +353,9 @@ def merge_runs(results: list[dict], refs: list[str]) -> dict:
     commits = sorted({r["source"].get("commit") for r in results if r["source"].get("commit")})
     if len(commits) > 1:
         raise EditorPlayError("커밋이 다른 회차를 묶을 수 없음: " + ", ".join(commits))
+    dirt = [r["source"]["dirty"] for r in results if isinstance(r["source"].get("dirty"), bool)]
+    if dirt:
+        out["source"]["dirty"] = any(dirt)
     out["collected_at"] = max(r["collected_at"] for r in results if r.get("collected_at"))
     items = {}
     for iid in first["items"]:
