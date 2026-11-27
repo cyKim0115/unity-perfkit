@@ -109,6 +109,20 @@ def compare_runsets(base: R.Side, cand: R.Side, *, manifest, cfg: J.CompareConfi
     else:
         bvals, cvals = R.metric_values(b_use), R.metric_values(c_use)
 
+    compat = any(r.meta.get("compat_mode") for r in b_use + c_use)
+    compat_skipped = []
+    if compat:
+        rb, rc = R.metric_values(b_use), R.metric_values(c_use)
+        compat_skipped = sorted(i for i in set(rb) | set(rc) if not (set(rb.get(i, {})) & set(rc.get(i, {}))))
+        for iid in sorted(set(bvals) | set(cvals)):
+            keys = set(bvals.get(iid, {})) & set(cvals.get(iid, {}))
+            if not keys:
+                bvals.pop(iid, None), cvals.pop(iid, None)
+                continue
+            for d in (bvals, cvals):
+                for k in list(d.get(iid, {})):
+                    if k not in keys:
+                        d[iid].pop(k)
     items: dict[str, dict] = {}
     stat_counts: dict[str, int] = {}
     verdict_counts: dict[str, int] = {}
@@ -135,6 +149,9 @@ def compare_runsets(base: R.Side, cand: R.Side, *, manifest, cfg: J.CompareConfi
                "paired": bool(pairs), "pairs": len(pairs) if pairs else 0, "interleaved": inter,
                "n_base": len(b_use), "n_cand": len(c_use), "n_invalid_runs": len(b_bad) + len(c_bad),
                "include_invalid": bool(include_invalid and (b_bad or c_bad))}
+    if compat:
+        summary["compat_mode"] = True
+        summary["compat_skipped"] = compat_skipped
     if invalid:
         summary["invalid_reasons"] = invalid
     if warns:

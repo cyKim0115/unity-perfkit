@@ -226,7 +226,12 @@ def usable(runs: list[Run], gate: dict | None) -> tuple[list[Run], list[dict]]:
 def consistency(base: list[Run], cand: list[Run]) -> tuple[list[str], list[str]]:
     """(무효 사유, 경고). 측정 코드·시나리오·매니페스트·품질 설정 해시가 다르면 무효."""
     invalid, warns = [], []
+    compat = any(r.meta.get("compat_mode") for r in base + cand)
+    if compat:
+        warns.append("호환 모드: 측정 코드가 없는 회차가 있어 측정 코드·품질 설정 해시를 맞대지 않고 두 쪽에 다 있는 지표만 비교")
     for f in HASH_FIELDS:
+        if compat and f in ("probe_hash", "quality_hash"):
+            continue
         bv = {r.field(f) for r in base}
         cv = {r.field(f) for r in cand}
         if len(bv) > 1:
@@ -269,8 +274,12 @@ def pair_up(base: list[Run], cand: list[Run], how: str) -> list[tuple[Run, Run]]
     if how == "order":
         n = min(len(base), len(cand))
         return list(zip(base[:n], cand[:n])) if n else None
-    bmap = {r.meta.get("round"): r for r in base}
-    cmap = {r.meta.get("round"): r for r in cand}
+    def key(r):
+        rnd = r.meta.get("round")
+        return None if rnd is None else (r.meta.get("session") or "", rnd)
+
+    bmap = {key(r): r for r in base}
+    cmap = {key(r): r for r in cand}
     if len(bmap) != len(base) or len(cmap) != len(cand) or None in bmap or None in cmap:
         return None
     common = sorted(set(bmap) & set(cmap))

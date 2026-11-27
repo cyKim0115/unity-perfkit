@@ -83,6 +83,90 @@ class CompareValuesTest(unittest.TestCase):
         self.assertEqual(res.outcome, "different")
 
 
+FAKE_BUILD = r"""
+import json, shutil, sys
+from pathlib import Path
+commit, out, apk, probe = sys.argv[1], Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4]
+d = out / ("b_" + commit[:8]); d.mkdir(parents=True, exist_ok=True)
+w = out / "_work" / ("b_" + commit[:8]); w.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(apk, d / "game.apk")
+(w / "state.json").write_text(json.dumps({"commit": commit + "0" * (40 - len(commit)), "file": str(d / "game.apk"),
+                                          "probeCode": probe}), encoding="utf-8")
+cnt = out / "count.txt"
+cnt.write_text(str(int(cnt.read_text()) + 1 if cnt.exists() else 1))
+"""
+
+
+class PipelineTest(unittest.TestCase):
+    """커밋·APK 입력: 가짜 빌드 명령으로 빌드 → 캐시 → L1 diff(기기 실행 없이)."""
+
+    def _profile(self, td, probe="yes"):
+        import sys
+
+        from tests.fakeproj import make_apk
+
+        (td / "fake_build.py").write_text(FAKE_BUILD, encoding="utf-8")
+        apk = make_apk(td / "src.apk")
+        out = td / "builds"
+        cmd = [sys.executable, (td / "fake_build.py").as_posix(), "{commit}", out.as_posix(), apk.as_posix(), probe]
+        extra = ("\n[build]\ncommand = " + json.dumps(cmd)
+                 + f'\nstate_glob = "{out.as_posix()}/_work/*/state.json"\n'
+                 + '\n[run]\nbuild_info = "{apk_dir}/../_work/{apk_dir_name}/state.json"\n')
+        return PROFILE_COMPARE + extra, out
+
+    def test_commit_build_cache_and_l1(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as t:
+            td = Path(t)
+            prof, out = self._profile(td)
+            with isolated_settings(prof) as ptd:
+                results = ptd / "results"
+                rc, text = cli(["compare", "--results", str(results), "--base-commit", "aaaa1111", "--cand-commit",
+                                "bbbb2222", "--no-run", "--out", str(td / "c.json")])
+                self.assertEqual(rc, 0, text)
+                self.assertEqual((out / "count.txt").read_text(), "2")
+                doc = _load(td / "c.json")
+                self.assertEqual(doc["layer"], "L1")
+                self.assertEqual(doc["summary"]["changes"], 0)        # 같은 APK 내용
+                cache = _load(results / "build-cache.json")
+                self.assertEqual(len(cache["commits"]), 2)
+                rc, text = cli(["compare", "--results", str(results), "--base-commit", "aaaa1111", "--cand-commit",
+                                "bbbb2222", "--no-run", "--no-save"])
+                self.assertEqual(rc, 0, text)
+                self.assertEqual((out / "count.txt").read_text(), "2")  # 캐시 재사용, 다시 빌드 안 함
+                self.assertIn("cached=True", text)
+                apk = out / "b_aaaa1111" / "game.apk"
+                rc, text = cli(["compare", "--results", str(results), "--base-apk", str(apk), "--cand-commit",
+                                "bbbb2222", "--no-run", "--no-save"])
+                self.assertEqual(rc, 0, text)
+                self.assertIn("commit=aaaa1111", text)                   # APK 옆 빌드 정보로 커밋을 앎
+
+    def test_compat_label(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as t:
+            td = Path(t)
+            prof, out = self._profile(td, probe="no")
+            with isolated_settings(prof) as ptd:
+                rc, text = cli(["compare", "--results", str(ptd / "results"), "--base-commit", "cccc3333",
+                                "--cand-commit", "dddd4444", "--no-run", "--no-save"])
+                self.assertEqual(rc, 0, text)
+                self.assertIn("(호환 모드)", text)
+
+    def test_missing_build_config(self):
+        with isolated_settings(PROFILE_COMPARE) as ptd:
+            rc, text = cli(["compare", "--results", str(ptd / "results"), "--base-commit", "abc1234",
+                            "--cand-commit", "def5678", "--no-run"])
+            self.assertEqual(rc, 2)
+            self.assertIn("[build]", text)
+
+    def test_one_of_commit_or_apk(self):
+        with isolated_settings(PROFILE_COMPARE) as ptd:
+            rc, text = cli(["compare", "--results", str(ptd / "results"), "--base-commit", "abc1234", "--cand", "x"])
+            self.assertEqual(rc, 2)
+
+
 class CompareCliTest(unittest.TestCase):
     def setUp(self):
         self._cm = isolated_settings(PROFILE_COMPARE)
@@ -204,10 +288,52 @@ class CompareCliTest(unittest.TestCase):
         self.assertFalse(doc["summary"]["interleaved"])
         self.assertTrue(any("교차" in w for w in doc["summary"]["warnings"]))
 
-    def test_commit_placeholder(self):
-        rc, text = cli(["compare", "--base-commit", "abc1234", "--cand", "x"])
-        self.assertEqual(rc, 2)
-        self.assertIn("아직 없음", text)
+    def test_compat_mode_common_metrics_only(self):
+        g = noisy(1, 400.0, 0.002)
+        abab_session(self.results, "cm", 6, lambda r: {"MEM-04": {"total_used_mb": g()}},
+                     lambda r: values(g(), 30.0, 160.0),
+                     base_meta={"compat_mode": True, "probe_hash": "none", "quality_hash": None})
+        rc, text, doc = self._compare("--runs", "session:cm", "--split", "arm")
+        self.assertEqual(rc, 0, text)
+        self.assertTrue(doc["valid"])
+        self.assertTrue(doc["summary"]["compat_mode"])
+        self.assertEqual(sorted(doc["items"]), ["MEM-04"])
+        self.assertIn("AUX-01", doc["summary"]["compat_skipped"])
+        self.assertTrue(any("호환 모드" in w for w in doc["summary"]["warnings"]))
+
+    def test_bisect_step_exit_codes(self):
+        g = noisy(1, 400.0, 0.002)
+        abab_session(self.results, "bw", 8, lambda r: values(g(), 30.0, 160.0), lambda r: values(g() * 1.2, 30.0, 160.0))
+        rc, text = cli(["bisect-step", "--results", str(self.results), "--runs", "session:bw", "--split", "arm", "--no-save"])
+        self.assertEqual(rc, 1, text)
+        self._same_session("bs")
+        rc, text = cli(["bisect-step", "--results", str(self.results), "--runs", "session:bs", "--split", "arm",
+                        "--no-save"])
+        self.assertIn(rc, (0, 125), text)
+        from datetime import timedelta
+
+        from tests.runsfake import T0
+
+        abab_session(self.results, "bu", 2, lambda r: values(g(), 30.0, 160.0), lambda r: values(g(), 30.0, 160.0),
+                     start=T0 + timedelta(days=3))
+        rc, text = cli(["bisect-step", "--results", str(self.results), "--runs", "session:bu", "--split", "arm",
+                        "--no-save"])
+        self.assertEqual(rc, 125, text)                     # 2라운드 → 판단 보류
+        rc, text = cli(["bisect-step", "--results", str(self.results), "--runs", "session:없음", "--no-save"])
+        self.assertEqual(rc, 128)
+
+    def test_worst_stat_mapping(self):
+        from perfkit.compare import BISECT_CODE
+        from perfkit.compare.core import worst_stat
+
+        def doc(*sts):
+            return {"schema": "perfkit/comparison@1", "method": "abab", "items": {
+                "MEM-04": {"outcome": "pass", "metrics": {f"k{i}": {"outcome": "pass", "stat": st} for i, st in enumerate(sts)}}}}
+        self.assertEqual(BISECT_CODE[worst_stat(doc({"outcome": "same"}))], 0)
+        self.assertEqual(BISECT_CODE[worst_stat(doc({"outcome": "same"}, {"outcome": "inconclusive"}))], 125)
+        self.assertEqual(BISECT_CODE[worst_stat(doc({"outcome": "inconclusive"},
+                                                    {"outcome": "different", "direction": "worse"}))], 1)
+        self.assertEqual(BISECT_CODE[worst_stat(doc({"outcome": "different", "direction": "better"}))], 0)
 
     def test_baseline_register_and_noise(self):
         self._same_session("aa", rounds=6)
