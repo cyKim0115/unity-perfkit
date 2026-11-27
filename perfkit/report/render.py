@@ -23,6 +23,7 @@ ORDER = ["fail", "warn", "review", "not_collected", "pending", "improved", "pass
 STRUCT_CSS = """
 .lvl { display: inline-block; font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px;
   background: var(--accent); color: var(--on-accent); margin-right: 6px; }
+.badges { margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 6px; }
 .lvl.soft { background: var(--accent-soft); color: var(--text); }
 .v { white-space: nowrap; font-weight: 600; }
 .v-better { color: var(--ok); }
@@ -390,7 +391,7 @@ def render(doc: dict, *, css_path: str | Path | None = None, title: str | None =
     return ("<!DOCTYPE html><html lang=\"ko\"><head><meta charset=\"utf-8\">"
             "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
             f"<title>{esc(h1)}</title><style>{css}\n{STRUCT_CSS}</style></head><body><div class=\"wrap\">"
-            f"<header><h1>{esc(h1)}</h1><div class=\"meta\">{badges}{meta}</div></header>{banner}{cards}"
+            f"<header><h1>{esc(h1)}</h1><div class=\"badges\">{badges}</div><div class=\"meta\">{meta}</div></header>{banner}{cards}"
             f"{body}{foot}<footer>perfkit report · 등급이 다른 수치는 한 표에 섞지 않습니다. "
             "에뮬레이터 개선은 실기기 회차로 재현되기 전까지 「실기기 확인 대기」입니다.</footer></div></body></html>\n")
 
