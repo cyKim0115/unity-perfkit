@@ -58,7 +58,8 @@ perfkit/
   schema/           run-meta·result·comparison·manifest JSON 스키마와 표준 라이브러리 검증기, schema 명령
   static/           L0 정적 점검(static 명령): Unity YAML 파서, C# 소스 검사, 임포트 규칙, 설정 스냅숏
   build/            L1 빌드 산출물 점검(build 명령): APK·AAB 구성, 16KB 정렬, 빌드 레이아웃, 셰이더 변형
-  diff/             L0·L1 결과 비교(diff 명령), 결과 파일 입출력
+  diff/             L0·L1·L2 결과 비교(diff 명령), 결과 파일 입출력
+  editor/           L2 에디터 Play 결과·프로파일러 캡처 요약·메모리 스냅숏 비교 읽기(editor 명령)
   compare/          기준 대비 비교·통계 판정(compare), 기준선(baseline), A/A 잡음 바닥(noise)
   report/           비교·점검 결과 HTML(report), 기본 테마 default.css
   index/            회차·비교 색인(index): runs.jsonl·comparisons.jsonl·runs.sqlite
@@ -93,6 +94,7 @@ python -m perfkit schema list
 python -m perfkit schema validate <파일...> [--kind run-meta|result|comparison|manifest] [--manifest]
 python -m perfkit verdict judge --id BLD-01 --layer L1 --metric apk_mb --base 100 --cand 106
 python -m perfkit static | build | diff             L0·L1 점검과 비교(아래 절)
+python -m perfkit editor play | profile | memory    L2 에디터 Play 결과(아래 절)
 python -m perfkit device | run                    L3 기기 회차(아래 절)
 python -m perfkit compare | bisect-step | baseline | noise | report | index | import   기준 대비 비교·판정·보고(아래 절)
 python -m unittest discover -s tests -t .
@@ -175,6 +177,29 @@ python -m perfkit build --apk <APK> ... --editor <audit.json>     # L1 몫(extra
 | `detail` | 값은 그대로, `detail.editor`에 내역만 붙인다(예: Auditor 코드 진단 수) |
 
 합친 항목에는 `merged_from: "editor"`, 결과 `tool.editor`에 에디터 도구·커밋·범위·Auditor 요약이 남는다. 에디터 결과의 커밋이나 범위가 정적 점검과 다르면 `tool.warnings`에 적는다.
+
+## L2 에디터 Play: editor
+
+Unity 에디터 Play에서 같은 시나리오를 돌려 모은 값을 L2 결과로 만든다. 측정은 프로젝트 안 에디터 도구가 하고(perfkit은 Unity를 부르지 않는다), perfkit은 그 JSON을 읽어 매니페스트 항목으로 바꾸고 비교한다. L2는 같은 날 같은 에디터에서 다시 재서 보는 추세용이다. 기기 수치와 한 표에 넣거나 비교하지 않는다.
+
+```
+python -m perfkit editor play <play.json> [--out <L2.json>]          에디터 Play 원값 → L2 결과(result 스키마)
+python -m perfkit editor play <a.json> <b.json> <c.json> --out <L2.json>   같은 조건 회차를 묶음(지표가 회차별 값 목록)
+python -m perfkit diff <기준 L2.json> <후보 L2.json> [--fail-on warn]     L2 두 결과 비교(잡음 등급 규칙)
+python -m perfkit editor profile <요약.json> [--top 20]               프로파일러 캡처 요약 보기(상위 마커, FRM-04 판별)
+python -m perfkit editor memory <비교.json> [--out <요약.json>]        메모리 스냅숏 비교 요약(MEM-06·07 참고값)
+python -m perfkit run --device <기기> --apk <개발 빌드 APK> --scenario <이름> --capture profiler [--capture-frames 1800]
+```
+
+- 입력 `perfkit/editor-play@1`: `legs`(카메라 시나리오 다리 `near`·`far` 구도, 팝업 다리 `popup`), 구도마다 그리기 수 요약(`drawCalls`·`batches`·`setPassCalls`·`triangles`·`vertices`·`shadowCasters`, n·mean·p50·p95·min·max), 구도 동안 뜬 프로파일러 캡처 요약 `profile`, 원경 뒤 `static`(그림자·후처리 설정)·`frameDebugger`(이벤트별 배치 끊김 사유·후처리·아웃라인 패스), 팝업 열기 이벤트(`events`, 이벤트 프레임부터 3프레임 최대). 대응표는 `perfkit/editor/play.py` 머리말.
+- 기본 저장 위치: 결과 폴더의 `editor/<날짜>-<커밋8>/<이름>.l2.json`.
+- GC(CPU-02)·UI 마커(CPU-09)는 프로파일러 캡처에서 읽는다(게임 루프만). 에디터의 `GC Allocated In Frame` 카운터는 에디터 루프 할당이 섞여 쓰지 않는다.
+- 회차 하나끼리 diff하면 잡음 「중간」 항목(CPU-15 등)은 기준 회차가 모자라 「판단 보류」다. 회차 셋 이상을 `editor play a b c`로 묶어 비교한다.
+- Frame Debugger가 실패한 회차는 GPU-05·22와 GPU-21 `post_passes`가 「수집 못 함: 이유」로 남는다.
+
+프로파일러 캡처 요약 `perfkit/editor-profile@1`: `frameMs`(분포)·`frameMsHistogram`, `topSelf`(자기 시간 상위 마커), `gcAllocCallsPerFrame`·`gcAllocBytesPerFrame`, `markers`(지켜보는 마커 포함 시간), `bottleneckPct`(FRM-04). 기기 개발 빌드 캡처(`run --capture profiler`)와 에디터 구도 캡처가 같은 형식이다.
+
+`run --capture profiler`는 개발 빌드에 `-profiler-enable -profiler-log-file <기기 perf 폴더>/<run_id>.raw -profiler-capture-frame-count <N> -profiler-maxusedmemory 268435456`을 붙이고, 끝나면 회차 폴더 `profiler.raw`로 받아 기기에서 지운다. 캡처는 앱 시작부터 N프레임이라(약 170 KB/프레임) 로딩 구간이 앞에 있다. `capture.json`의 `summarize`(`raw`·`out`·`skip_frames` = 측정 첫 단계 frame·`max_frames`)를 에디터 쪽 요약 도구에 넘긴다. 릴리스 빌드는 프로파일러가 없어 캡처되지 않는다.
 
 ## 기기 회차: device·run (L3)
 
