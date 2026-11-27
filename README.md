@@ -62,6 +62,7 @@ perfkit/
   compare/          기준 대비 비교·통계 판정(compare), 기준선(baseline), A/A 잡음 바닥(noise)
   report/           비교·점검 결과 HTML(report), 기본 테마 default.css
   index/            회차·비교 색인(index): runs.jsonl·comparisons.jsonl·runs.sqlite
+  legacy/           옛 측정 자료 가져오기(import legacy)
   device/           L3 기기 준비·점검(device 명령): adb·logcat 이어 받기, 기기 설정 합치기, 호스트 유휴 관문, proc·sysfs 샘플러, AVD 대조, 임대 도구 감싸기
   run/              L3 회차 실행·수집(run 명령): 설치·세이브 주입·실행·끝 신호·수집, 반복·ABAB, 콜드 시작, 측정 모드 로그·CSV 파서, 지표 계산
 manifest/
@@ -93,7 +94,7 @@ python -m perfkit schema validate <파일...> [--kind run-meta|result|comparison
 python -m perfkit verdict judge --id BLD-01 --layer L1 --metric apk_mb --base 100 --cand 106
 python -m perfkit static | build | diff             L0·L1 점검과 비교(아래 절)
 python -m perfkit device | run                    L3 기기 회차(아래 절)
-python -m perfkit compare | baseline | noise | report | index   기준 대비 비교·판정·보고(아래 절)
+python -m perfkit compare | bisect-step | baseline | noise | report | index | import   기준 대비 비교·판정·보고(아래 절)
 python -m unittest discover -s tests -t .
 ```
 
@@ -306,7 +307,22 @@ python -m perfkit index rebuild | check
 - SPEC: `session:<이름>`(회차 메타 `session`), `baseline:<이름>`, `run:<id,…>`, 회차 폴더나 그 부모 폴더, L0·L1 결과 파일. `--base`·`--cand`는 여러 번 줄 수 있고, 결과 파일과 회차 묶음을 함께 주면 층마다 하나씩 `perfkit/comparison-set@1`로 묶는다(각 부분은 comparison 스키마).
 - 회차 폴더: `<결과 폴더>/runs/<run_id>/meta.json`(run-meta) + `result.json`(result, 같은 run_id). 나머지 원자료 파일은 색인의 artifact로만 잡힌다.
 - 비교 결과 기본 저장: `<결과 폴더>/comparisons/<시각>-<기준>-vs-<후보>.json`(`--report`면 옆에 .html).
-- 종료 코드: 0 정상 · 1 `--fail-on`에 걸림 · 2 거부(등급 혼용, 입력 오류) · 3 비교 무효(해시 다름). 커밋·APK를 받아 빌드·실행하는 `--base-commit`·`--base-apk`는 자리만 있다.
+- 종료 코드: 0 정상 · 1 `--fail-on`에 걸림 · 2 거부(등급 혼용, 입력 오류, 빌드·실행 실패) · 3 비교 무효(해시 다름).
+
+커밋·APK를 주면 끝까지 간다: 빌드(캐시) → L1 점검 → 기기 교차 실행(ABAB) → 판정 → 보고 HTML(`<결과 폴더>/reports/`) → 색인.
+
+```
+python -m perfkit compare --base-apk <기준 APK> --cand-commit <커밋> [--device emulator] [--scenario <이름>] [--rounds 6]
+python -m perfkit compare --base-commit <커밋> --cand-commit <커밋> --no-run          빌드·L1 diff까지만
+python -m perfkit bisect-step --base-apk <좋은 빌드 APK> --cand-head <프로젝트 저장소>  git bisect run용
+python -m perfkit noise aa --device emulator --apk <APK> --scenario <이름> --rounds 5 [--baseline <이름>]
+python -m perfkit import legacy <옛 자료 폴더> --device <기기> --build-hash <8자>
+```
+
+- 빌드 명령은 프로젝트마다 달라 프로젝트 프로필 `[build]`에서 읽는다(`compare/pipeline.py` 머리 주석). `command`의 `{commit}`을 채워 돌리고, 끝나면 `state_glob`에서 그 커밋의 빌드 결과 JSON(`commit`·`file` 칸)을 찾아 APK를 쓴다. 커밋 → APK 색인(`[build] cache`, 기본 `<결과 폴더>/build-cache.json`)이 있으면 다시 빌드하지 않는다(파일 크기를 확인, `--rebuild`로 무시). APK는 빌드가 둔 곳에 그대로 둔다.
+- 측정 모드가 없는 빌드(빌드 결과 JSON의 `probe_key` 칸이 no)는 라벨에 「호환 모드」가 붙고, 비교는 두 쪽에 다 있는 기기 밖 지표만 본다(측정 코드·품질 설정 해시는 맞대지 않음).
+- 교차 실행은 `perfkit run abab`(기본 6라운드)이고, 관문에서 무효인 라운드는 `--max-reruns`(기본 1)만큼 새 세션으로 다시 돌려 세션·라운드로 쌍을 짓는다. 빌드를 한 뒤에는 adb 서버를 다시 띄우고 `device doctor`를 먼저 돈다.
+- `bisect-step`: 악화(통계 다름·악화, 또는 L0·L1 경고·실패) 1 · 같음 0 · 판단 보류·비교 무효 125 · 오류 128(bisect 중단).
 
 판정(지표 하나)
 
